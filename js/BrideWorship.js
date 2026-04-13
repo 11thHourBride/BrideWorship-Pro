@@ -539,15 +539,17 @@ function showBibPassagePanel(ref, verses) {
   if (!panel) return;
 
   panel.style.display = 'flex';
-  if (refEl) refEl.textContent = ref;
+  // Clean the ref before displaying — remove any accidental double-colon
+  const cleanRef = cleanBibRef(ref);
+  if (refEl) refEl.textContent = cleanRef;
 
   if (!verses) {
-    // Loading state
-    if (textEl) textEl.innerHTML = `<div class="bib-loading"><div class="bib-spinner"></div>Loading ${ref}…</div>`;
+    if (textEl) textEl.innerHTML = `<div class="bib-loading">
+      <div class="bib-spinner"></div>Loading ${escapeHTML(cleanRef)}…</div>`;
     return;
   }
 
-  _bib.lastPassage = { ref, verses };
+  _bib.lastPassage = { ref: cleanRef, verses };
 
   if (!textEl) return;
   if (!verses.length) {
@@ -561,10 +563,8 @@ function showBibPassagePanel(ref, verses) {
       <span class="bpp-verse-text">${escapeHTML(v.text)}</span>
     </div>`).join('');
 
-  // Scroll panel into view
   setTimeout(() => panel.scrollIntoView({ behavior:'smooth', block:'nearest' }), 50);
 }
-
 function closeBibPassage() {
   const panel = document.getElementById('bib-passage-panel');
   if (panel) panel.style.display = 'none';
@@ -579,21 +579,28 @@ function projectBiblePassage() {
   const { ref, verses } = _bib.lastPassage;
   const onePerSlide = document.getElementById('bib-one-per-slide')?.checked ?? true;
   const showRef     = document.getElementById('bib-ref-on-slide')?.checked  ?? false;
-  const version     = document.getElementById('bible-version-sel')?.options[
-    document.getElementById('bible-version-sel')?.selectedIndex
-  ]?.text || 'KJV';
+  const versionSel  = document.getElementById('bible-version-sel');
+  const version     = versionSel?.options[versionSel.selectedIndex]?.text || 'KJV';
+
+  // Parse book+chapter from ref so we can build clean per-verse labels
+  // ref format examples: "John 3:16"  "John 3:5-6"  "Psalm 23"
+  const refBase = ref.replace(/:\d+.*$/, '').trim(); // e.g. "John 3"
 
   S.songIdx = null;
+
   if (onePerSlide) {
     S.slides = verses.map(v => ({
-      section:  ref + ':' + v.num,
-      text:     (showRef ? `${ref}:${v.num}\n\n` : '') + v.text,
-      version:  version,
+      // Section label: "John 3:16" — never "John 3:16:16"
+      section: `${refBase}:${v.num}`,
+      text:    (showRef ? `${refBase}:${v.num}\n\n` : '') + v.text,
+      version,
     }));
   } else {
+    // Range label uses the clean ref already built by buildBibRef
     const fullText = verses.map(v => `${v.num} ${v.text}`).join(' ');
     S.slides = [{ section: ref, text: fullText, version }];
   }
+
   S.cur = 0;
   renderQueue();
   renderSlide();
@@ -7302,6 +7309,30 @@ function buildBibRef(bookName, ch, vsFrom, vsTo) {
   return `${bookName} ${ch}:${vsFrom}–${vsTo}`;
 }
 
+
+function cleanBibRef(ref) {
+  if (!ref) return '';
+  // Match: BookName Chapter:Verse optionally followed by extra :Verse or -Verse
+  // Pattern: any text + space + digits + colon + digits + (optional :digits or -digits)
+  const m = ref.match(/^(.+?\s+\d+):(\d+)(?::(\d+))?(?:[–\-](\d+))?$/);
+  if (!m) return ref;
+
+  const bookAndChapter = m[1]; // e.g. "John 3"
+  const vsFrom         = parseInt(m[2]);
+  // m[3] is a spurious extra :N — use it as vsTo only if bigger than vsFrom
+  // m[4] is a proper dash range
+  let vsTo = m[4] ? parseInt(m[4])
+           : m[3] ? parseInt(m[3])
+           : vsFrom;
+
+  // If vsTo equals vsFrom — single verse
+  if (vsTo === vsFrom) return `${bookAndChapter}:${vsFrom}`;
+
+  // If vsTo is somehow less than vsFrom — single verse
+  if (vsTo < vsFrom) return `${bookAndChapter}:${vsFrom}`;
+
+  return `${bookAndChapter}:${vsFrom}-${vsTo}`;
+}
 /* Override fetchBiblePassage with the clean ref */
 fetchBiblePassage = async function () {
   const bookSel  = document.getElementById('bib-book');
