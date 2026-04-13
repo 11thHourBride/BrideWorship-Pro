@@ -1,0 +1,170 @@
+/* ══════════════════════════════════════════════
+   KJV BIBLE BROWSER
+══════════════════════════════════════════════ */
+
+/* Version bar */
+.bible-version-bar {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border-bottom: 1px solid var(--border-dim);
+  background: rgba(201,168,76,.04); flex-shrink: 0;
+}
+.bible-logo  { font-size: 15px; }
+.bible-version-name {
+  font-family: 'Cinzel', serif; font-size: 9px;
+  letter-spacing: 2px; color: var(--gold-dim);
+  text-transform: uppercase; flex: 1;
+}
+
+/* Navigator panel */
+.bible-nav-panel {
+  padding: 8px 12px; border-bottom: 1px solid var(--border-dim);
+  background: #0a0a14; display: flex; flex-direction: column; gap: 5px;
+}
+.bible-nav-row {
+  display: flex; align-items: center; gap: 4px;
+}
+.bible-nav-lbl {
+  font-size: 9px; color: var(--text-3); white-space: nowrap;
+  font-family: 'Cinzel', serif; letter-spacing: 1px;
+}
+.bible-nav-sel {
+  flex: 1; background: var(--bg-card);
+  border: 1px solid var(--border-dim); color: var(--text-1);
+  padding: 4px 5px; border-radius: 3px;
+  font-size: 11px; font-family: 'Lato', sans-serif;
+  outline: none; height: 26px;
+}
+.bible-nav-sel:focus { border-color: var(--gold-dim); }
+.bib-vs-sel { flex: 0 0 46px; }
+
+/* Search bar */
+.bible-search-bar {
+  display: flex; gap: 5px; padding: 6px 12px;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+/* Testament tabs */
+.bible-testament-tabs {
+  display: flex; border-bottom: 1px solid var(--border-dim); flex-shrink: 0;
+}
+.btt {
+  flex: 1; padding: 6px 4px; text-align: center;
+  font-size: 10px; color: var(--text-3); cursor: pointer;
+  border-bottom: 2px solid transparent;
+  font-family: 'Cinzel', serif; letter-spacing: 1px;
+  transition: all .18s; white-space: nowrap;
+}
+.btt:hover { color: var(--text-2); }
+.btt.on    { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* Book grid */
+.bible-book-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 2px; padding: 6px 10px; overflow-y: auto;
+  flex: 1;
+}
+.bible-book-grid::-webkit-scrollbar { width: 3px; }
+.bible-book-grid::-webkit-scrollbar-thumb { background: var(--border-dim); }
+
+.bib-book-btn {
+  padding: 5px 7px; background: var(--bg-card);
+  border: 1px solid var(--border-dim); border-radius: 3px;
+  cursor: pointer; transition: all .15s; text-align: left;
+}
+.bib-book-btn:hover { background: var(--bg-hover); border-color: var(--gold-dim); }
+.bib-book-btn.active { background: var(--bg-active); border-color: var(--gold); }
+.bib-book-name {
+  font-size: 11px; font-weight: 700; color: var(--text-1);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bib-book-ch {
+  font-size: 9px; color: var(--text-3);
+  font-family: 'Cinzel', serif; letter-spacing: 1px;
+}
+
+/* Passage panel */
+.bible-passage-panel {
+  border-top: 2px solid var(--gold-dim);
+  background: #07070f; display: flex;
+  flex-direction: column; flex-shrink: 0;
+  max-height: 260px;
+}
+.bpp-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 10px; border-bottom: 1px solid var(--border-dim);
+  background: rgba(201,168,76,.06);
+}
+.bpp-ref {
+  font-family: 'Cinzel', serif; font-size: 10px;
+  letter-spacing: 2px; color: var(--gold); text-transform: uppercase;
+}
+.bpp-text {
+  flex: 1; overflow-y: auto; padding: 8px 10px;
+  font-family: 'Lato', sans-serif; font-size: 12px;
+  color: var(--text-2); line-height: 1.8;
+}
+.bpp-text::-webkit-scrollbar { width: 3px; }
+.bpp-text::-webkit-scrollbar-thumb { background: var(--border-dim); }
+.bpp-verse {
+  display: flex; gap: 6px; margin-bottom: 4px;
+}
+.bpp-verse-num {
+  font-size: 9px; color: var(--gold-dim); font-family: 'Cinzel', serif;
+  min-width: 18px; padding-top: 3px; flex-shrink: 0;
+}
+.bpp-verse-text { flex: 1; }
+.bpp-options {
+  display: flex; padding: 4px 10px;
+  border-top: 1px solid var(--border-dim);
+}
+.bpp-opt {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 10px; color: var(--text-3); cursor: pointer;
+}
+.bpp-actions {
+  display: flex; gap: 4px; padding: 6px 10px;
+  border-top: 1px solid var(--border-dim);
+}
+
+/* Saved panel */
+.bible-saved-panel { overflow-y: auto; flex: 1; }
+.bible-saved-panel::-webkit-scrollbar { width: 3px; }
+.bible-saved-panel::-webkit-scrollbar-thumb { background: var(--border-dim); }
+.bib-saved-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 7px 12px; border-bottom: 1px solid var(--border-dim);
+  cursor: pointer; transition: background .15s;
+}
+.bib-saved-item:hover { background: var(--bg-hover); }
+.bib-saved-ref  { flex: 1; font-size: 11px; font-weight: 700; color: var(--gold-dim); }
+.bib-saved-text {
+  font-size: 10px; color: var(--text-3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 130px;
+}
+.bib-saved-del {
+  background: none; border: none; color: var(--text-3);
+  cursor: pointer; font-size: 13px; padding: 0 2px; transition: color .15s;
+}
+.bib-saved-del:hover { color: var(--red); }
+
+/* Loading state */
+.bib-loading {
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; color: var(--text-3); font-size: 11px;
+  gap: 8px;
+}
+.bib-spinner {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid var(--border-dim);
+  border-top-color: var(--gold);
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Error state */
+.bib-error {
+  padding: 10px 12px; font-size: 11px;
+  color: var(--red); line-height: 1.7;
+  background: rgba(224,80,80,.05);
+  border-top: 1px solid rgba(224,80,80,.2);
+}

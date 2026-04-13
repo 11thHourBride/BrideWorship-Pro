@@ -1,0 +1,633 @@
+/* ═══════════════════════════════════════════════════════════════
+   BrideWorship Pro — App Theme Engine
+   7 complete UI themes, each fully remapping every CSS variable.
+   Applied via data-theme="<id>" on <html>.
+   Default (no attribute) = Dark Gold.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── 1. DARK GOLD (default — no attribute needed) ── */
+:root,
+[data-theme="dark-gold"] {
+  --bg-deep:    #09090f;
+  --bg-panel:   #10101a;
+  --bg-card:    #18182a;
+  --bg-hover:   #20203a;
+  --bg-active:  #28284a;
+  --gold:       #c9a84c;
+  --gold-light: #e8c97a;
+  --gold-dim:   #7a6230;
+  --text-1:     #f0eee8;
+  --text-2:     #9a9890;
+  --text-3:     #55535a;
+  --blue:       #4a90d9;
+  --green:      #4caf7a;
+  --red:        #e05050;
+  --amber:      #d4a017;
+  --accent:     #c9a84c;
+  --accent-dim: #7a6230;
+  --accent-glow:rgba(201,168,76,.35);
+  --border:     rgba(201,168,76,.14);
+  --border-dim: rgba(255,255,255,.06);
+  --live-glow:  rgba(76,175,122,.45);
+  --shadow-deep:0 8px 32px rgba(0,0,0,.7);
+  --topbar-bg:  #10101a;
+  --library-bg: #10101a;
+  --stage-bg:   #09090f;
+  --right-bg:   #10101a;
+  --bottom-bg:  #10101a;
+  --queue-bg:   #0b0b14;
+  --scrollbar:  rgba(255,255,255,.06);
+  --theme-name: "Dark Gold";
+}
+
+/* ── 2. MIDNIGHT BLUE ── */
+[data-theme="midnight-blue"] {
+  --bg-deep:    #060d18;
+  --bg-panel:   #0a1422;
+  --bg-card:    #111e30;
+  --bg-hover:   #182840;
+  --bg-active:  #203250;
+  --gold:       #5ba3e8;
+  --gold-light: #7dbef5;
+  --gold-dim:   #3a6a9a;
+  --text-1:     #e8f0fa;
+  --text-2:     #8aa0b8;
+  --text-3:     #445566;
+  --blue:       #5ba3e8;
+  --green:      #3db870;
+  --red:        #e05858;
+  --amber:      #e8a030;
+  --accent:     #5ba3e8;
+  --accent-dim: #3a6a9a;
+  --accent-glow:rgba(91,163,232,.35);
+  --border:     rgba(91,163,232,.18);
+  --border-dim: rgba(255,255,255,.07);
+  --live-glow:  rgba(61,184,112,.45);
+  --shadow-deep:0 8px 32px rgba(0,0,0,.75);
+  --topbar-bg:  #0a1422;
+  --library-bg: #0a1422;
+  --stage-bg:   #060d18;
+  --right-bg:   #0a1422;
+  --bottom-bg:  #0a1422;
+  --queue-bg:   #080f1c;
+  --scrollbar:  rgba(91,163,232,.1);
+  --theme-name: "Midnight Blue";
+}
+
+/* ── 3. FOREST DARK ── */
+[data-theme="forest-dark"] {
+  --bg-deep:    #060f08;
+  --bg-panel:   #0a1810;
+  --bg-card:    #112018;
+  --bg-hover:   #182a20;
+  --bg-active:  #203428;
+  --gold:       #4caf7a;
+  --gold-light: #6dd49a;
+  --gold-dim:   #2a7048;
+  --text-1:     #e8f5ec;
+  --text-2:     #7a9880;
+  --text-3:     #3a5440;
+  --blue:       #4a90d9;
+  --green:      #4caf7a;
+  --red:        #e05050;
+  --amber:      #c8a030;
+  --accent:     #4caf7a;
+  --accent-dim: #2a7048;
+  --accent-glow:rgba(76,175,122,.35);
+  --border:     rgba(76,175,122,.16);
+  --border-dim: rgba(255,255,255,.06);
+  --live-glow:  rgba(76,175,122,.5);
+  --shadow-deep:0 8px 32px rgba(0,0,0,.7);
+  --topbar-bg:  #0a1810;
+  --library-bg: #0a1810;
+  --stage-bg:   #060f08;
+  --right-bg:   #0a1810;
+  --bottom-bg:  #0a1810;
+  --queue-bg:   #080f0a;
+  --scrollbar:  rgba(76,175,122,.1);
+  --theme-name: "Forest Dark";
+}
+
+/* ── 4. CRIMSON CHURCH ── */
+[data-theme="crimson"] {
+  --bg-deep:    #0f0608;
+  --bg-panel:   #1a0a0d;
+  --bg-card:    #281015;
+  --bg-hover:   #34161c;
+  --bg-active:  #401c22;
+  --gold:       #e05878;
+  --gold-light: #f07090;
+  --gold-dim:   #882030;
+  --text-1:     #fae8ec;
+  --text-2:     #b08088;
+  --text-3:     #604048;
+  --blue:       #8090d8;
+  --green:      #50c080;
+  --red:        #e05878;
+  --amber:      #e08030;
+  --accent:     #e05878;
+  --accent-dim: #882030;
+  --accent-glow:rgba(224,88,120,.35);
+  --border:     rgba(224,88,120,.18);
+  --border-dim: rgba(255,255,255,.06);
+  --live-glow:  rgba(80,192,128,.45);
+  --shadow-deep:0 8px 32px rgba(0,0,0,.75);
+  --topbar-bg:  #1a0a0d;
+  --library-bg: #1a0a0d;
+  --stage-bg:   #0f0608;
+  --right-bg:   #1a0a0d;
+  --bottom-bg:  #1a0a0d;
+  --queue-bg:   #14080a;
+  --scrollbar:  rgba(224,88,120,.1);
+  --theme-name: "Crimson Church";
+}
+
+/* ── 5. WARM SEPIA ── */
+[data-theme="sepia"] {
+  --bg-deep:    #100e0a;
+  --bg-panel:   #1c1810;
+  --bg-card:    #282018;
+  --bg-hover:   #342a20;
+  --bg-active:  #403428;
+  --gold:       #d4a060;
+  --gold-light: #e8bc80;
+  --gold-dim:   #8a6830;
+  --text-1:     #f5ede0;
+  --text-2:     #a09070;
+  --text-3:     #605040;
+  --blue:       #8090b8;
+  --green:      #70a870;
+  --red:        #c86060;
+  --amber:      #d4a060;
+  --accent:     #d4a060;
+  --accent-dim: #8a6830;
+  --accent-glow:rgba(212,160,96,.35);
+  --border:     rgba(212,160,96,.16);
+  --border-dim: rgba(255,255,255,.06);
+  --live-glow:  rgba(112,168,112,.45);
+  --shadow-deep:0 8px 32px rgba(0,0,0,.65);
+  --topbar-bg:  #1c1810;
+  --library-bg: #1c1810;
+  --stage-bg:   #100e0a;
+  --right-bg:   #1c1810;
+  --bottom-bg:  #1c1810;
+  --queue-bg:   #16120c;
+  --scrollbar:  rgba(212,160,96,.1);
+  --theme-name: "Warm Sepia";
+}
+
+/* ── 6. LIGHT / DAY MODE ── */
+[data-theme="light"] {
+  --bg-deep:    #f4f2ee;
+  --bg-panel:   #faf8f5;
+  --bg-card:    #ffffff;
+  --bg-hover:   #f0ece6;
+  --bg-active:  #e8e0d8;
+  --gold:       #8a5c20;
+  --gold-light: #b07030;
+  --gold-dim:   #c0a060;
+  --text-1:     #1a1610;
+  --text-2:     #605040;
+  --text-3:     #a09080;
+  --blue:       #2a68b8;
+  --green:      #1a8050;
+  --red:        #c02828;
+  --amber:      #c07810;
+  --accent:     #8a5c20;
+  --accent-dim: #c0a060;
+  --accent-glow:rgba(138,92,32,.2);
+  --border:     rgba(138,92,32,.18);
+  --border-dim: rgba(0,0,0,.1);
+  --live-glow:  rgba(26,128,80,.35);
+  --shadow-deep:0 8px 32px rgba(0,0,0,.15);
+  --topbar-bg:  #faf8f5;
+  --library-bg: #faf8f5;
+  --stage-bg:   #f4f2ee;
+  --right-bg:   #faf8f5;
+  --bottom-bg:  #faf8f5;
+  --queue-bg:   #f0ece6;
+  --scrollbar:  rgba(0,0,0,.1);
+  --theme-name: "Light Day";
+}
+
+/* ── 7. SLATE PROFESSIONAL ── */
+[data-theme="slate"] {
+  --bg-deep:    #0c0e12;
+  --bg-panel:   #13161d;
+  --bg-card:    #1c2028;
+  --bg-hover:   #242830;
+  --bg-active:  #2c3040;
+  --gold:       #7090c8;
+  --gold-light: #90aee0;
+  --gold-dim:   #485880;
+  --text-1:     #dde4f0;
+  --text-2:     #8090a8;
+  --text-3:     #485060;
+  --blue:       #7090c8;
+  --green:      #50b888;
+  --red:        #d86060;
+  --amber:      #c8a840;
+  --accent:     #7090c8;
+  --accent-dim: #485880;
+  --accent-glow:rgba(112,144,200,.3);
+  --border:     rgba(112,144,200,.16);
+  --border-dim: rgba(255,255,255,.07);
+  --live-glow:  rgba(80,184,136,.45);
+  --shadow-deep:0 8px 32px rgba(0,0,0,.7);
+  --topbar-bg:  #13161d;
+  --library-bg: #13161d;
+  --stage-bg:   #0c0e12;
+  --right-bg:   #13161d;
+  --bottom-bg:  #13161d;
+  --queue-bg:   #0f1218;
+  --scrollbar:  rgba(112,144,200,.1);
+  --theme-name: "Slate Pro";
+}
+
+/* ══════════════════════════════════════════════════════
+   THEME-AWARE OVERRIDES
+   These ensure every panel respects the active theme.
+══════════════════════════════════════════════════════ */
+
+/* Global background */
+body            { background: var(--bg-deep); }
+.app            { background: var(--bg-deep); }
+
+/* Topbar */
+.topbar         { background: var(--topbar-bg); }
+
+/* Library */
+.library        { background: var(--library-bg); }
+.lib-body       { background: var(--library-bg); }
+.lib-head       { background: var(--library-bg); }
+
+/* Center stage */
+.center         { background: var(--stage-bg); }
+.queue          { background: var(--queue-bg); }
+.center-tabs    { background: var(--queue-bg); }
+
+/* Right panel */
+.right          { background: var(--right-bg); }
+.r-tab-panel    { background: var(--right-bg); }
+.out-wrap       { background: var(--right-bg); }
+
+/* Bottom bar */
+.bottom         { background: var(--bottom-bg); }
+
+/* Cards and inputs */
+.lib-item:hover         { background: var(--bg-hover); }
+.lib-item.sel           { background: var(--bg-active); border-left-color: var(--accent); }
+.so-item:hover          { background: var(--bg-hover); border-color: var(--accent-dim); }
+.so-item.so-active      { background: var(--bg-active); border-color: var(--accent); }
+.so-item.so-editing     { border-color: var(--accent) !important; background: rgba(var(--accent-glow-rgb, 201,168,76),.06) !important; }
+.sch-item:hover         { background: var(--bg-hover); border-color: var(--accent-dim); }
+.sch-item.sch-current   { border-color: var(--green); background: rgba(76,175,122,.07); }
+.theme-card:hover       { border-color: var(--accent-dim); }
+.theme-card.active      { border-color: var(--accent); }
+.bg-swatch.active       { border-color: var(--accent); }
+
+/* Accent elements */
+.panel-tag      { color: var(--accent-dim); }
+.logo           { color: var(--accent); }
+.ltab.on        { color: var(--accent); border-bottom-color: var(--accent); }
+.ctab.on        { color: var(--accent); border-bottom-color: var(--accent); }
+.rtab.on        { color: var(--accent); border-bottom-color: var(--accent); }
+.db-tab.on      { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn.on     { color: var(--accent); border-color: var(--border); background: var(--bg-card); }
+.trans-btn.on   { color: var(--accent); border-color: var(--accent-dim); background: var(--bg-active); }
+
+/* Buttons */
+.lib-add-btn    { background: var(--accent-dim); }
+.lib-add-btn:hover { background: var(--accent); }
+.sc-add         { background: var(--accent-dim); }
+.sc-add:hover   { background: var(--accent); }
+.so-add-btn     { background: var(--accent-dim); }
+.so-add-btn:hover { background: var(--accent); }
+.se-add-slide-btn { background: var(--accent-dim); }
+.se-add-slide-btn:hover { background: var(--accent); }
+.modal-btn-save { background: var(--accent); }
+.modal-btn-save:hover { background: var(--gold-light); }
+
+/* Inputs */
+.search:focus,
+.se-inp:focus,
+.modal-input:focus,
+.sc-input:focus,
+.t-inp:focus,
+.sch-title-inp:focus { border-color: var(--accent-dim); }
+
+/* Live dot */
+.live-dot.on    { background: var(--green); }
+.live-label.on  { color: var(--green); }
+
+/* Thumb current/live */
+.thumb.cur      { border-color: var(--accent); }
+.thumb.live     { border-color: var(--green); }
+
+/* Timer urgency stays red regardless of theme */
+.timer-display.urgent { color: var(--red); }
+.timer-display.warning{ color: var(--amber); }
+
+/* Light theme text inversions */
+[data-theme="light"] .slide-lyrics,
+[data-theme="light"] #s-text       { color: var(--text-1); }
+[data-theme="light"] .lib-item     { border-left-color: transparent; }
+[data-theme="light"] .lib-item.sel { border-left-color: var(--accent); }
+[data-theme="light"] .queue-empty  { color: var(--text-3); }
+[data-theme="light"] .thumb-img::before { background: radial-gradient(ellipse at 30% 30%,#d8d0c0 0%,#c0b8a8 70%); }
+[data-theme="light"] .thumb-text    { color: var(--accent); }
+[data-theme="light"] .main-slide .slide-bg { background: radial-gradient(ellipse at 28% 28%,#e0d8c8 0%,#d8cfc0 100%) !important; }
+[data-theme="light"] #s-text        { color: #1a1610 !important; text-shadow: 0 1px 4px rgba(255,255,255,.5); }
+[data-theme="light"] .so-item       { background: #fff; }
+[data-theme="light"] .so-item:hover { background: #f0ece6; }
+[data-theme="light"] .modal-overlay { background: rgba(0,0,0,.55); }
+[data-theme="light"] .modal         { background: #faf8f5; }
+[data-theme="light"] kbd            { background: #e8e0d8; color: var(--text-1); }
+[data-theme="light"] .hotkey-table th { background: #e8e0d8; }
+[data-theme="light"] .sch-item      { background: #fff; }
+[data-theme="light"] .sch-item:hover{ background: #f4f0e8; }
+[data-theme="light"] .timer-display { color: var(--accent); }
+[data-theme="light"] .go-btn        { background: var(--green); }
+[data-theme="light"] .go-btn.end    { background: var(--red); }
+
+/* ══════════════════════════════════════════════════════
+   THEME SWITCHER PANEL
+   Triggered by clicking the 🎨 Theme button in topbar.
+══════════════════════════════════════════════════════ */
+
+#theme-switcher-panel {
+  position: fixed;
+  top: 54px;
+  right: 14px;
+  width: 340px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow-deep), 0 0 40px rgba(0,0,0,.5);
+  z-index: 2000;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  animation: themePanelIn .18s cubic-bezier(.22,1,.36,1);
+}
+#theme-switcher-panel.open { display: flex; }
+@keyframes themePanelIn {
+  from { opacity:0; transform: translateY(-8px) scale(.97); }
+  to   { opacity:1; transform: none; }
+}
+
+.tsp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-dim);
+  background: var(--bg-card);
+}
+.tsp-title {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.tsp-close {
+  background: none;
+  border: none;
+  color: var(--text-3);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 3px;
+  transition: color .15s;
+  line-height: 1;
+}
+.tsp-close:hover { color: var(--text-1); }
+
+.tsp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 14px;
+}
+
+.tsp-card {
+  border-radius: 7px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all .2s;
+  position: relative;
+}
+.tsp-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.5); }
+.tsp-card.active { border-color: var(--accent) !important; box-shadow: 0 0 14px var(--accent-glow); }
+
+.tsp-preview {
+  height: 64px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.tsp-preview-inner {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 4px 8px;
+}
+.tsp-preview-title {
+  font-family: 'Cinzel', serif;
+  font-size: 5px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+  opacity: .7;
+}
+.tsp-preview-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 8px;
+  line-height: 1.4;
+}
+.tsp-preview-bar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.tsp-preview-check {
+  position: absolute;
+  top: 4px; right: 5px;
+  font-size: 10px;
+  background: rgba(0,0,0,.4);
+  border-radius: 50%;
+  width: 16px; height: 16px;
+  display: flex; align-items: center; justify-content: center;
+  display: none;
+}
+.tsp-card.active .tsp-preview-check { display: flex; }
+
+.tsp-label {
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'Lato', sans-serif;
+  padding: 5px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tsp-tag {
+  font-size: 8px;
+  font-weight: 400;
+  padding: 1px 4px;
+  border-radius: 2px;
+  opacity: .7;
+}
+
+.tsp-footer {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border-dim);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.tsp-footer-label {
+  font-size: 10px;
+  color: var(--text-3);
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
+}
+.tsp-reset-btn {
+  background: none;
+  border: 1px solid var(--border-dim);
+  color: var(--text-3);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  font-family: 'Lato', sans-serif;
+  transition: all .18s;
+}
+.tsp-reset-btn:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+/* ══════════════════════════════════════════════════════
+   TEMPLATE EDITOR — Font Size + Apply fixes
+══════════════════════════════════════════════════════ */
+
+/* Font size row */
+.tmpl-font-size-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0;
+}
+.tmpl-font-size-row .modal-label { margin: 0; font-size: 9px; }
+.tmpl-font-size-val {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--accent);
+  min-width: 30px;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* Template apply button — always sticky at bottom of editor */
+.tmpl-apply-bar {
+  padding: 10px 14px;
+  border-top: 1px solid var(--border-dim);
+  background: var(--bg-card);
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.tmpl-apply-now-btn {
+  flex: 1;
+  background: var(--accent);
+  border: none;
+  color: #000;
+  padding: 9px 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Lato', sans-serif;
+  letter-spacing: .5px;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.tmpl-apply-now-btn:hover { background: var(--gold-light); transform: translateY(-1px); }
+.tmpl-apply-now-btn:active { transform: scale(.98); }
+.tmpl-save-only-btn {
+  background: var(--bg-hover);
+  border: 1px solid var(--border-dim);
+  color: var(--text-2);
+  padding: 9px 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Lato', sans-serif;
+  transition: all .2s;
+}
+.tmpl-save-only-btn:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+/* Preset/custom cards apply button overlay */
+.tmpl-card-apply-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  backdrop-filter: blur(1px);
+  border-radius: 5px 5px 0 0;
+}
+.tsp-card:hover .tmpl-card-apply-overlay { display: flex; }
+.tmpl-card-apply-btn {
+  background: var(--accent);
+  border: none;
+  color: #000;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'Lato', sans-serif;
+  cursor: pointer;
+  letter-spacing: .5px;
+  transition: transform .15s;
+}
+.tmpl-card-apply-btn:hover { transform: scale(1.05); }
+
+/* Active template indicator on card */
+.tmpl-active-badge {
+  position: absolute;
+  top: 5px; right: 5px;
+  background: var(--green);
+  color: #fff;
+  font-size: 7px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  letter-spacing: 1px;
+  z-index: 6;
+  pointer-events: none;
+}
+
+/* Transition for theme changes */
+body,
+.topbar, .library, .center, .right, .bottom,
+.lib-head, .lib-body, .lib-item,
+.so-item, .sch-item, .queue,
+.modal, .modal-overlay,
+.bg-card, .bg-panel, .bg-deep,
+.out-wrap, .r-section {
+  transition:
+    background-color .3s ease,
+    border-color .22s ease,
+    color .22s ease;
+}
