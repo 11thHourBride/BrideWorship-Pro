@@ -7655,6 +7655,437 @@ bibleSearch = async function (query) {
   await bibleWordSearch(q);
 };
 
+/* ═══════════════════════════════════════════════════════════
+   1. RESPONSIVE DRAWERS
+═══════════════════════════════════════════════════════════ */
+
+function toggleDrawer(side) {
+  const el       = document.querySelector('.' + side);
+  const backdrop = document.getElementById('drawer-backdrop');
+  if (!el) return;
+  const isOpen = el.classList.toggle('drawer-open');
+  // Close the other side if opening this one
+  if (isOpen) {
+    const other = side === 'library' ? 'right' : 'library';
+    document.querySelector('.' + other)?.classList.remove('drawer-open');
+    if (backdrop) backdrop.classList.add('visible');
+  } else {
+    if (backdrop) backdrop.classList.remove('visible');
+  }
+}
+
+function closeAllDrawers() {
+  document.querySelector('.library')?.classList.remove('drawer-open');
+  document.querySelector('.right')?.classList.remove('drawer-open');
+  document.getElementById('drawer-backdrop')?.classList.remove('visible');
+}
+
+/* Close drawers when user navigates to a new tab or section */
+document.addEventListener('click', e => {
+  const isLibItem   = e.target.closest('.lib-item, .ltab, .bib-book-btn');
+  const isCenterTab = e.target.closest('.ctab');
+  if (isLibItem || isCenterTab) {
+    setTimeout(closeAllDrawers, 120);
+  }
+});
+
+/* Swipe to close drawers on touch */
+(function initSwipeClose() {
+  let startX = 0;
+  document.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend',   e => {
+    const diff = e.changedTouches[0].clientX - startX;
+    if (diff < -60) {
+      // Swipe left — close library drawer
+      document.querySelector('.library')?.classList.remove('drawer-open');
+    }
+    if (diff > 60) {
+      // Swipe right — close right drawer
+      document.querySelector('.right')?.classList.remove('drawer-open');
+    }
+    const lib   = document.querySelector('.library.drawer-open');
+    const right = document.querySelector('.right.drawer-open');
+    if (!lib && !right) document.getElementById('drawer-backdrop')?.classList.remove('visible');
+  }, { passive: true });
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   2. HDMI / MULTI-MONITOR PROJECTION
+   Uses Window Management API (getScreenDetails) where available,
+   falls back to window.open on the best available screen.
+═══════════════════════════════════════════════════════════ */
+
+let _screenDetails    = null;   // ScreenDetails object if API available
+let _projScreen       = null;   // Target Screen object for projection
+let _autoProjectionOn = false;
+
+/* Called when user opens the app or connects a new display */
+async function detectAndAutoProject() {
+  // ── Try Window Management API (Chrome 100+) ──
+  if ('getScreenDetails' in window) {
+    try {
+      _screenDetails = await window.getScreenDetails();
+
+      // Listen for screen changes (HDMI plug/unplug)
+      _screenDetails.addEventListener('screenschange', onScreensChanged);
+
+      const screens = _screenDetails.screens;
+      if (screens.length > 1) {
+        // Find the non-primary screen — that is the HDMI/extended display
+        _projScreen = screens.find(s => !s.isPrimary) || screens[screens.length - 1];
+        showSchToast(`📺 External display detected: ${_projScreen.label || 'Screen ' + (_screenDetails.screens.indexOf(_projScreen) + 1)}`);
+        autoOpenOnExternalScreen();
+      }
+    } catch(e) {
+      // Permission denied or not supported — fall back silently
+      console.info('[BW] Window Management API not available:', e.message);
+    }
+  }
+}
+
+async function autoOpenOnExternalScreen() {
+  if (!_projScreen) return;
+  // If projection window is already open on the right screen, do nothing
+  if (S.projWin && !S.projWin.closed) return;
+
+  const left   = _projScreen.availLeft   ?? _projScreen.left   ?? 0;
+  const top    = _projScreen.availTop    ?? _projScreen.top    ?? 0;
+  const width  = _projScreen.availWidth  ?? _projScreen.width  ?? 1920;
+  const height = _projScreen.availHeight ?? _projScreen.height ?? 1080;
+
+  S.projWin = window.open(
+    '',
+    'BW_Projection',
+    `left=${left},top=${top},width=${width},height=${height},` +
+    `menubar=no,toolbar=no,location=no,status=no,resizable=yes`
+  );
+
+  if (!S.projWin) {
+    showSchToast('⚠ Popup blocked — allow popups then click Second Screen');
+    return;
+  }
+
+  S.projWin.document.open();
+  S.projWin.document.write(projWindowHTML());
+  S.projWin.document.close();
+
+  // Attempt to go fullscreen on the external display
+  setTimeout(() => {
+    try {
+      S.projWin.moveTo(left, top);
+      S.projWin.resizeTo(width, height);
+      // Request fullscreen inside the projection window
+      S.projWin.document.documentElement.requestFullscreen?.();
+    } catch(e) { /* best effort */ }
+  }, 600);
+
+  document.getElementById('proj-btn')?.classList.add('on');
+  push();
+
+  showSchToast(`📺 Projecting on external display (${width}×${height})`);
+  _autoProjectionOn = true;
+}
+
+function onScreensChanged() {
+  if (!_screenDetails) return;
+  const screens = _screenDetails.screens;
+  const external = screens.find(s => !s.isPrimary);
+
+  if (external && (!S.projWin || S.projWin.closed)) {
+    _projScreen = external;
+    showSchToast('📺 Display connected — opening projection window…');
+    setTimeout(autoOpenOnExternalScreen, 800);
+  } else if (!external && S.projWin && !S.projWin.closed) {
+    showSchToast('📺 External display disconnected');
+  }
+}
+
+/* Extend openProjection to use the correct screen position */
+const _origOpenProjection = typeof openProjection === 'function' ? openProjection : null;
+openProjection = async function () {
+  if (S.projWin && !S.projWin.closed) { S.projWin.focus(); return; }
+
+  // Try Window Management API first
+  if ('getScreenDetails' in window && !_screenDetails) {
+    try {
+      _screenDetails = await window.getScreenDetails();
+      _screenDetails.addEventListener('screenschange', onScreensChanged);
+    } catch(e) { /* permission denied */ }
+  }
+
+  // Find external screen
+  if (_screenDetails?.screens?.length > 1) {
+    _projScreen = _screenDetails.screens.find(s => !s.isPrimary)
+               || _screenDetails.screens[_screenDetails.screens.length - 1];
+    await autoOpenOnExternalScreen();
+    return;
+  }
+
+  // Fallback: open without position hints (works with single screen or no API)
+  if (_origOpenProjection) { _origOpenProjection(); return; }
+
+  S.projWin = window.open(
+    '',
+    'BW_Projection',
+    'width=1280,height=720,menubar=no,toolbar=no,location=no,status=no'
+  );
+  if (!S.projWin) { alert('Popup blocked — allow popups for this site.'); return; }
+  S.projWin.document.open();
+  S.projWin.document.write(projWindowHTML());
+  S.projWin.document.close();
+  document.getElementById('proj-btn')?.classList.add('on');
+  push();
+};
+
+/* Keep projection window fullscreen if user accidentally exits fullscreen */
+function maintainProjFullscreen() {
+  if (!S.projWin || S.projWin.closed) return;
+  try {
+    const doc = S.projWin.document;
+    if (doc && !S.projWin.document.fullscreenElement) {
+      doc.documentElement.requestFullscreen?.();
+    }
+  } catch(e) { /* ignore */ }
+}
+setInterval(maintainProjFullscreen, 4000);
+
+/* Wake Lock — prevent screen from sleeping during live output */
+let _wakeLock = null;
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      _wakeLock = await navigator.wakeLock.request('screen');
+      _wakeLock.addEventListener('release', () => { _wakeLock = null; });
+    }
+  } catch(e) { /* not critical */ }
+}
+async function releaseWakeLock() {
+  try { await _wakeLock?.release(); } catch(e) { /* ignore */ }
+}
+
+/* Hook into toggleLive to manage wake lock and auto-detect screens */
+const _origToggleLiveForScreen = typeof toggleLive === 'function' ? toggleLive : null;
+toggleLive = function () {
+  if (_origToggleLiveForScreen) _origToggleLiveForScreen();
+  if (S.live) {
+    requestWakeLock();
+    detectAndAutoProject();
+  } else {
+    releaseWakeLock();
+  }
+};
+
+/* Try to detect screens on page load (user may have already connected HDMI) */
+(function initScreenDetect() {
+  function doDetect() {
+    // Only auto-detect if the user has already granted permission before
+    if (localStorage.getItem('bw_screen_permission') === 'granted') {
+      detectAndAutoProject();
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', doDetect);
+  } else {
+    setTimeout(doDetect, 500);
+  }
+})();
+
+/* Store permission grant so we can auto-detect on next load */
+if ('getScreenDetails' in window) {
+  navigator.permissions?.query({ name:'window-management' })
+    .then(status => {
+      if (status.state === 'granted') {
+        localStorage.setItem('bw_screen_permission', 'granted');
+      }
+      status.addEventListener('change', () => {
+        if (status.state === 'granted') {
+          localStorage.setItem('bw_screen_permission', 'granted');
+          detectAndAutoProject();
+        }
+      });
+    }).catch(() => {});
+}
+
+/* ═══════════════════════════════════════════════════════════
+   3. BIBLE SHORT-FORM / ABBREVIATION RESOLVER
+═══════════════════════════════════════════════════════════ */
+
+const BIBLE_ABBREV = {
+  /* Old Testament */
+  'gen':   'Genesis',        'ge':    'Genesis',
+  'ex':    'Exodus',         'exo':   'Exodus',        'exod': 'Exodus',
+  'lev':   'Leviticus',      'le':    'Leviticus',     'lv':   'Leviticus',
+  'num':   'Numbers',        'nu':    'Numbers',        'nm':   'Numbers',
+  'deut':  'Deuteronomy',    'deu':   'Deuteronomy',   'dt':   'Deuteronomy',
+  'josh':  'Joshua',         'jos':   'Joshua',
+  'judg':  'Judges',         'jdg':   'Judges',        'jg':   'Judges',
+  'rut':   'Ruth',           'ru':    'Ruth',
+  '1sam':  '1 Samuel',       '1sa':   '1 Samuel',      '1s':   '1 Samuel',
+  '2sam':  '2 Samuel',       '2sa':   '2 Samuel',      '2s':   '2 Samuel',
+  '1ki':   '1 Kings',        '1kgs':  '1 Kings',
+  '2ki':   '2 Kings',        '2kgs':  '2 Kings',
+  '1chr':  '1 Chronicles',   '1ch':   '1 Chronicles',  '1chron':'1 Chronicles',
+  '2chr':  '2 Chronicles',   '2ch':   '2 Chronicles',  '2chron':'2 Chronicles',
+  'ezr':   'Ezra',           'ez':    'Ezra',
+  'neh':   'Nehemiah',       'ne':    'Nehemiah',
+  'est':   'Esther',         'esth':  'Esther',
+  'job':   'Job',            'jb':    'Job',
+  'ps':    'Psalms',         'psa':   'Psalms',        'psalm': 'Psalms',
+  'prov':  'Proverbs',       'pro':   'Proverbs',      'pr':   'Proverbs',
+  'eccl':  'Ecclesiastes',   'ecc':   'Ecclesiastes',  'ec':   'Ecclesiastes',
+  'song':  'Song of Solomon','sos':   'Song of Solomon','ss':  'Song of Solomon',
+  'isa':   'Isaiah',         'is':    'Isaiah',
+  'jer':   'Jeremiah',       'je':    'Jeremiah',
+  'lam':   'Lamentations',   'la':    'Lamentations',
+  'ezek':  'Ezekiel',        'eze':   'Ezekiel',
+  'dan':   'Daniel',         'da':    'Daniel',        'dn':   'Daniel',
+  'hos':   'Hosea',          'ho':    'Hosea',
+  'joel':  'Joel',           'jl':    'Joel',
+  'amos':  'Amos',           'am':    'Amos',
+  'obad':  'Obadiah',        'ob':    'Obadiah',
+  'jon':   'Jonah',          'jnh':   'Jonah',
+  'mic':   'Micah',          'mi':    'Micah',
+  'nah':   'Nahum',          'na':    'Nahum',
+  'hab':   'Habakkuk',       'hb':    'Habakkuk',
+  'zeph':  'Zephaniah',      'zep':   'Zephaniah',     'zp':   'Zephaniah',
+  'hag':   'Haggai',         'hg':    'Haggai',
+  'zech':  'Zechariah',      'zec':   'Zechariah',     'zc':   'Zechariah',
+  'mal':   'Malachi',        'ml':    'Malachi',
+  /* New Testament */
+  'matt':  'Matthew',        'mat':   'Matthew',       'mt':   'Matthew',
+  'mk':    'Mark',           'mar':   'Mark',
+  'luk':   'Luke',           'lk':    'Luke',
+  'jn':    'John',           'joh':   'John',
+  'act':   'Acts',           'ac':    'Acts',
+  'rom':   'Romans',         'ro':    'Romans',        'rm':   'Romans',
+  '1cor':  '1 Corinthians',  '1co':   '1 Corinthians',
+  '2cor':  '2 Corinthians',  '2co':   '2 Corinthians',
+  'gal':   'Galatians',      'ga':    'Galatians',
+  'eph':   'Ephesians',
+  'phil':  'Philippians',    'php':   'Philippians',   'pp':   'Philippians',
+  'col':   'Colossians',
+  '1thes': '1 Thessalonians','1th':   '1 Thessalonians','1ths':'1 Thessalonians',
+  '2thes': '2 Thessalonians','2th':   '2 Thessalonians','2ths':'2 Thessalonians',
+  '1tim':  '1 Timothy',      '1ti':   '1 Timothy',     '1tm':  '1 Timothy',
+  '2tim':  '2 Timothy',      '2ti':   '2 Timothy',     '2tm':  '2 Timothy',
+  'tit':   'Titus',          'ti':    'Titus',
+  'phlm':  'Philemon',       'phm':   'Philemon',
+  'heb':   'Hebrews',        'he':    'Hebrews',
+  'jas':   'James',          'jm':    'James',
+  '1pet':  '1 Peter',        '1pe':   '1 Peter',       '1pt':  '1 Peter',
+  '2pet':  '2 Peter',        '2pe':   '2 Peter',       '2pt':  '2 Peter',
+  '1jn':   '1 John',         '1jo':   '1 John',
+  '2jn':   '2 John',         '2jo':   '2 John',
+  '3jn':   '3 John',         '3jo':   '3 John',
+  'jude':  'Jude',           'jud':   'Jude',
+  'rev':   'Revelation',     're':    'Revelation',    'apoc': 'Revelation',
+};
+
+/* Expand a raw reference string into its full canonical form.
+   Examples:
+     "Gen 1:1"       → "Genesis 1:1"
+     "Ex 14:15"      → "Exodus 14:15"
+     "1cor 13:4-7"   → "1 Corinthians 13:4-7"
+     "ps 23"         → "Psalms 23"
+     "Rev 21:4"      → "Revelation 21:4"
+*/
+function expandBibRef(raw) {
+  if (!raw) return raw;
+  const trimmed = raw.trim();
+
+  // Split into (optional leading digit)(word part)(rest: space + chapter:verse)
+  // Pattern handles: "Gen 1:1", "1cor 13:4", "1 cor 13:4", "Ps23:1" etc.
+  const m = trimmed.match(
+    /^(\d\s*)?([a-zA-Z]+)[\s.]*([\d:.\-–]+)?$/
+  );
+  if (!m) return trimmed;
+
+  const prefix   = (m[1] || '').replace(/\s/g, ''); // "1", "2", "3" or ""
+  const abbrev   = m[2].toLowerCase();               // "gen", "cor", etc.
+  const chapVerse= (m[3] || '').trim();              // "1:1", "13:4-7", etc.
+
+  // Build the lookup key: prefix + abbrev, e.g. "1cor", "2pet", "gen"
+  const key = prefix + abbrev;
+  const fullName = BIBLE_ABBREV[key]
+               || BIBLE_ABBREV[abbrev]
+               // Partial match: find first key that starts with our abbrev
+               || (() => {
+                    const found = Object.keys(BIBLE_ABBREV).find(k => k.startsWith(key) || k.startsWith(abbrev));
+                    return found ? BIBLE_ABBREV[found] : null;
+                  })();
+
+  if (!fullName) return trimmed; // Unknown — return as-is
+
+  return chapVerse ? `${fullName} ${chapVerse}` : fullName;
+}
+
+/* Patch quickScriptureLookup to expand abbreviations */
+const _origQuickScriptureLookup = typeof quickScriptureLookup === 'function'
+  ? quickScriptureLookup : null;
+
+quickScriptureLookup = async function () {
+  const inp = document.getElementById('sc-ref');
+  if (!inp) return;
+
+  const raw      = inp.value.trim();
+  const expanded = expandBibRef(raw);
+
+  // If we expanded something, show the user what we resolved
+  if (expanded !== raw && expanded) {
+    inp.value = expanded; // show expanded form in the input box
+    showSchToast(`Resolved: ${raw} → ${expanded}`);
+  }
+
+  // Check offline DB with the expanded ref
+  const key = expanded.toLowerCase();
+  if (SCRIPTURE_DB[key]) {
+    queueScripture(expanded, SCRIPTURE_DB[key]);
+    inp.value = '';
+    return;
+  }
+
+  // Try bibleSearch with expanded ref
+  await bibleSearch(expanded);
+  if (_bib.lastPassage) {
+    projectBiblePassage();
+    inp.value = '';
+  }
+};
+
+/* Patch bibleWordSearch to also try abbreviation expansion first */
+const _origBibleWordSearch = typeof bibleWordSearch === 'function'
+  ? bibleWordSearch : null;
+
+bibleWordSearch = async function (query) {
+  if (!query) return;
+  const expanded = expandBibRef(query.trim());
+
+  // If it expanded to something different and looks like a reference, use bibleSearch
+  if (expanded !== query && /\d/.test(expanded)) {
+    showSchToast(`Resolved: ${query} → ${expanded}`);
+    await bibleSearch(expanded);
+    return;
+  }
+
+  // Otherwise run the word search
+  if (_origBibleWordSearch) await _origBibleWordSearch(query);
+};
+
+/* Also patch the SO scripture lookup inside the drawer */
+const _origLookupSOScripture = typeof lookupSOScripture === 'function'
+  ? lookupSOScripture : null;
+
+lookupSOScripture = function () {
+  const refEl = document.getElementById('so-sc-ref');
+  if (refEl && refEl.value) {
+    const expanded = expandBibRef(refEl.value.trim());
+    if (expanded !== refEl.value.trim()) {
+      refEl.value = expanded;
+      showSchToast(`Resolved: ${refEl.value} → ${expanded}`);
+    }
+  }
+  if (_origLookupSOScripture) _origLookupSOScripture();
+};
 /* ══════════════════════════════════════
 DOMContentLoaded
 ══════════════════════════════════════ */
