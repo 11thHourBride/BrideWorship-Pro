@@ -23,7 +23,10 @@
   <button class="tab-btn"    data-lib="ls-presentations" onclick="topTab(this)">📊 Presentations</button>
   <div class="sep"></div>
   <button class="tab-btn custom-slide-btn" onclick="openCustomSlide()">✦ Custom Slide</button>
+  <!-- Drawer toggles — visible only on smaller screens -->
+  <button id="lib-drawer-toggle"   onclick="toggleDrawer('library')"  title="Toggle Library">☰</button>
   <div class="spacer"></div>
+  <button id="right-drawer-toggle" onclick="toggleDrawer('right')"    title="Toggle Controls">⚙</button>
   <button class="proj-btn" onclick="openHotkeys()" title="Keyboard Shortcuts">⌨ Hotkeys</button>
   <button class="proj-btn" onclick="openNDISettings()" title="NDI Output Settings">📡 NDI</button>
   <button class="proj-btn" onclick="openDBModal()" title="Import / Export Song Database">🗄 Database</button>
@@ -1168,7 +1171,7 @@
           <tr><td><kbd>R</kbd></td><td>Reset timer</td></tr>
           <tr><td><kbd>+</kbd> <kbd>=</kbd></td><td>Increase text size</td></tr>
           <tr><td><kbd>−</kbd></td><td>Decrease text size</td></tr>
-          <tr><td><kbd>Ctrl + B</kbd></td><td>Blank screen</td></tr>
+          <tr><td><kbd>P</kbd></td><td>Scripture Lookup</td></tr>
           <tr><td><kbd>Esc</kbd></td><td>Close modal / Blank screen</td></tr>
         </tbody>
       </table>
@@ -1873,6 +1876,7 @@
 </div>
 </div>
 
+<div class="drawer-backdrop" id="drawer-backdrop" onclick="closeAllDrawers()"></div>
 
 <script src="js/BrideWorship.js"></script>
 <script src="js/fix.js"></script>
