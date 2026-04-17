@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#09090f">
+<title>BrideWorship Remote</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+
+<style>
+/* ── Reset & root ── */
+*, *::before, *::after {
+  margin: 0; padding: 0; box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+:root {
+  --gold:   #c9a84c;
+  --gold2:  #e8c97a;
+  --bg:     #09090f;
+  --bg2:    #13131e;
+  --bg3:    #1c1c2a;
+  --border: rgba(255,255,255,.09);
+  --green:  #4caf7a;
+  --red:    #e05050;
+  --blue:   #4a90d9;
+  --amber:  #d4a017;
+  --text2:  rgba(255,255,255,.45);
+}
+html, body {
+  height: 100%; height: 100dvh;
+  background: var(--bg);
+  color: #fff;
+  font-family: 'Lato', -apple-system, sans-serif;
+  overflow: hidden;
+}
+
+/* ── Layout ── */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100%; height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: env(safe-area-inset-top, 14px) 14px env(safe-area-inset-bottom, 14px);
+  padding-top: max(env(safe-area-inset-top), 14px);
+  padding-bottom: max(env(safe-area-inset-bottom), 14px);
+  gap: 0;
+}
+
+/* ── Connect screen ── */
+#connect-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+}
+.hero-icon { font-size: 52px; animation: pulse 3s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{transform:scale(1);}  50%{transform:scale(1.06);} }
+.hero-title {
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
+  color: var(--gold);
+  letter-spacing: 3px;
+  text-align: center;
+}
+.hero-sub {
+  font-size: 13px;
+  color: var(--text2);
+  text-align: center;
+  line-height: 1.6;
+}
+.code-box {
+  width: 100%; max-width: 224px;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: 26px;
+  letter-spacing: 10px;
+  padding: 14px 10px;
+  background: var(--bg2);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  color: #fff;
+  outline: none;
+  text-transform: uppercase;
+  transition: border-color .2s;
+}
+.code-box:focus { border-color: var(--gold); }
+.conn-btn {
+  width: 100%; max-width: 224px;
+  padding: 14px;
+  background: var(--gold);
+  color: #000;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Lato', sans-serif;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: opacity .15s, transform .1s;
+}
+.conn-btn:active { opacity: .8; transform: scale(.97); }
+.err-msg { font-size: 12px; color: var(--red); min-height: 18px; text-align: center; }
+
+/* ── Main remote ── */
+#main-remote {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+  gap: 10px;
+}
+
+/* Header */
+.rem-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 0 4px;
+  flex-shrink: 0;
+}
+.rem-logo {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  color: var(--gold);
+  letter-spacing: 3px;
+}
+#status-pill {
+  font-size: 11px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  transition: all .3s;
+}
+#status-pill.on {
+  background: rgba(76,175,122,.12);
+  border-color: var(--green);
+  color: var(--green);
+}
+#status-pill.err {
+  background: rgba(224,80,80,.12);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* Slide card */
+.slide-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  min-height: 64px;
+  justify-content: center;
+}
+#slide-song {
+  font-size: 10px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: 'Cinzel', serif;
+}
+#slide-section {
+  font-size: 11px;
+  color: rgba(255,255,255,.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+#slide-count {
+  font-size: 13px;
+  color: rgba(255,255,255,.3);
+}
+
+/* Navigation buttons */
+.nav-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Base button */
+.rbtn {
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: transform .08s, opacity .15s, background .2s;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.rbtn:active { transform: scale(.91); opacity: .75; }
+.rbtn .ic { font-size: 26px; line-height: 1; }
+.rbtn .lb { font-size: 10px; letter-spacing: 1.5px; font-weight: 700; font-family: 'Lato', sans-serif; }
+
+.rbtn-prev  { background: rgba(255,255,255,.07); }
+.rbtn-next  { background: var(--gold); color: #000; }
+
+/* Control grid */
+.ctrl-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  flex-shrink: 0;
+}
+.ctrl-grid.three { grid-template-columns: 1fr 1fr 1fr; }
+
+.rbtn-live   { background: rgba(76,175,122,.1);  border: 2px solid var(--green); }
+.rbtn-live.on{ background: var(--green); color: #000; }
+.rbtn-blank  { background: rgba(255,255,255,.05); border: 2px solid transparent; }
+.rbtn-blank.on{ background: rgba(255,255,255,.15); border-color: #fff; }
+.rbtn-freeze { background: rgba(74,144,217,.08);  border: 2px solid transparent; }
+.rbtn-freeze.on{ border-color: var(--blue); background: rgba(74,144,217,.2); }
+.rbtn-logo   { background: rgba(201,168,76,.08);  border: 2px solid transparent; }
+.rbtn-logo.on{ border-color: var(--gold); background: rgba(201,168,76,.18); }
+.rbtn-timer  { background: rgba(212,160,23,.1);   border: 1px solid rgba(212,160,23,.25); }
+
+/* Section label */
+.sect-lbl {
+  font-size: 9px;
+  color: rgba(255,255,255,.24);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-align: center;
+  flex-shrink: 0;
+  padding: 2px 0 0;
+}
+
+/* Disconnect row */
+.disc-row {
+  margin-top: auto;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.disc-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(224,80,80,.3);
+  background: transparent;
+  color: var(--red);
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'Lato', sans-serif;
+  transition: background .18s;
+}
+.disc-btn:hover { background: rgba(224,80,80,.1); }
+.bw-brand {
+  font-size: 9px;
+  color: rgba(255,255,255,.18);
+  letter-spacing: 2px;
+  text-align: center;
+  text-transform: uppercase;
+  padding-bottom: 2px;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ CONNECT SCREEN ══ -->
+  <div id="connect-screen">
+    <div class="hero-icon">📱</div>
+    <div class="hero-title">BrideWorship<br>Remote</div>
+    <div class="hero-sub">Enter the 6-character Room Code<br>shown on the main presenter screen</div>
+    <input id="code-inp" class="code-box" maxlength="6" placeholder="XXXXXX"
+      autocomplete="off" autocorrect="off" spellcheck="false"
+      oninput="this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g,'')">
+    <button class="conn-btn" onclick="doConnect()">Connect →</button>
+    <div id="err-msg" class="err-msg"></div>
+  </div>
+
+  <!-- ══ MAIN REMOTE ══ -->
+  <div id="main-remote">
+
+    <div class="rem-header">
+      <div class="rem-logo">BW REMOTE</div>
+      <div id="status-pill">Connecting…</div>
+    </div>
+
+    <!-- Current slide info -->
+    <div class="slide-card">
+      <div id="slide-song">—</div>
+      <div id="slide-section"></div>
+      <div id="slide-count">— / —</div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-row">
+      <button class="rbtn rbtn-prev" onclick="send('prev')">
+        <span class="ic">◀</span>
+        <span class="lb">PREV</span>
+      </button>
+      <button class="rbtn rbtn-next" onclick="send('next')">
+        <span class="ic">▶</span>
+        <span class="lb">NEXT</span>
+      </button>
+    </div>
+
+    <!-- Output controls -->
+    <div class="sect-lbl">Output</div>
+    <div class="ctrl-grid">
+      <button class="rbtn rbtn-live" id="b-live" onclick="send('live')">
+        <span class="ic">📡</span>
+        <span class="lb">LIVE</span>
+      </button>
+      <button class="rbtn rbtn-blank" id="b-blank" onclick="send('blank')">
+        <span class="ic">■</span>
+        <span class="lb">BLANK</span>
+      </button>
+      <button class="rbtn rbtn-freeze" id="b-freeze" onclick="send('freeze')">
+        <span class="ic">❄</span>
+        <span class="lb">FREEZE</span>
+      </button>
+      <button class="rbtn rbtn-logo" id="b-logo" onclick="send('logo')">
+        <span class="ic">◈</span>
+        <span class="lb">LOGO</span>
+      </button>
+    </div>
+
+    <!-- Timer controls -->
+    <div class="sect-lbl">Timer</div>
+    <div class="ctrl-grid three">
+      <button class="rbtn rbtn-timer" onclick="send('timer_start')">
+        <span class="ic">▶</span>
+        <span class="lb">START</span>
+      </button>
+      <button class="rbtn rbtn-timer" onclick="send('timer_pause')">
+        <span class="ic">⏸</span>
+        <span class="lb">PAUSE</span>
+      </button>
+      <button class="rbtn rbtn-timer" onclick="send('timer_reset')">
+        <span class="ic">↺</span>
+        <span class="lb">RESET</span>
+      </button>
+    </div>
+
+    <!-- Disconnect -->
+    <div class="disc-row">
+      <button class="disc-btn" onclick="doDisconnect()">✕ Disconnect</button>
+    </div>
+
+    <div class="bw-brand">BrideWorship Pro · Remote Control</div>
+  </div>
+
+</div><!-- #app -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  let peer = null, conn = null;
+
+  /* Read ?code= from URL */
+  function getUrlCode() {
+    const p = new URLSearchParams(window.location.search);
+    return (p.get('code') || '').toUpperCase().substring(0, 6);
+  }
+
+  /* Pre-fill + auto-connect if code is in URL */
+  const prefill = getUrlCode();
+  if (prefill) {
+    document.getElementById('code-inp').value = prefill;
+    window.addEventListener('load', () => setTimeout(doConnect, 700));
+  }
+
+  window.doConnect = function () {
+    const code = document.getElementById('code-inp').value.trim().toUpperCase();
+    if (code.length < 6) { showErr('Please enter the full 6-character code'); return; }
+    showErr('');
+    setPill('Connecting…', false, false);
+
+    peer = new Peer({
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+        ]
+      }
+    });
+
+    peer.on('open', () => {
+      const peerId = 'bw-remote-' + code.toLowerCase();
+      conn = peer.connect(peerId, { reliable: true, serialization: 'json' });
+
+      conn.on('open', () => {
+        document.getElementById('connect-screen').style.display = 'none';
+        document.getElementById('main-remote').style.display    = 'flex';
+        setPill('● Connected', true, false);
+        // Heartbeat
+        setInterval(() => { if (conn && conn.open) conn.send({ cmd: 'ping' }); }, 5000);
+      });
+
+      conn.on('data', d => {
+        if (d && d.type === 'state') applyState(d);
+      });
+
+      conn.on('close', () => {
+        setPill('Disconnected', false, true);
+      });
+
+      conn.on('error', e => {
+        showErr('Connection error'); console.error(e);
+      });
+    });
+
+    peer.on('error', e => {
+      if (e.type === 'peer-unavailable') {
+        showErr('Room not found — check code or ask presenter to restart remote');
+      } else {
+        showErr('Network error: ' + e.type);
+      }
+      setPill('Error', false, true);
+    });
+  };
+
+  window.send = function (cmd) {
+    if (conn && conn.open) conn.send({ cmd });
+  };
+
+  window.doDisconnect = function () {
+    conn && conn.close();
+    peer && peer.destroy();
+    conn = null; peer = null;
+    document.getElementById('connect-screen').style.display = 'flex';
+    document.getElementById('main-remote').style.display    = 'none';
+    setPill('Connecting…', false, false);
+    showErr('');
+    // Clear slide info
+    document.getElementById('slide-song').textContent    = '—';
+    document.getElementById('slide-section').textContent = '';
+    document.getElementById('slide-count').textContent   = '— / —';
+    ['b-live','b-blank','b-freeze','b-logo'].forEach(id =>
+      document.getElementById(id)?.classList.remove('on')
+    );
+  };
+
+  function applyState(s) {
+    tog('b-live',   s.live);
+    tog('b-blank',  s.blanked);
+    tog('b-freeze', s.frozen);
+    tog('b-logo',   s.logo);
+
+    const songEl = document.getElementById('slide-song');
+    const secEl  = document.getElementById('slide-section');
+    const cntEl  = document.getElementById('slide-count');
+
+    if (songEl) songEl.textContent = s.song || (s.section ? '' : '—');
+    if (secEl)  secEl.textContent  = s.section || '';
+    if (cntEl)  cntEl.textContent  = (s.total > 0)
+      ? (s.cur + 1) + ' / ' + s.total
+      : '— / —';
+  }
+
+  function tog(id, on) {
+    document.getElementById(id)?.classList.toggle('on', !!on);
+  }
+
+  function setPill(msg, on, err) {
+    const el = document.getElementById('status-pill');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = on ? 'on' : (err ? 'err' : '');
+  }
+
+  function showErr(msg) {
+    const el = document.getElementById('err-msg');
+    if (el) el.textContent = msg;
+  }
+
+})();
+</script>
+</body>
+</html>
