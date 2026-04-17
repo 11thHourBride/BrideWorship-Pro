@@ -240,12 +240,6 @@
       <!-- Action buttons -->
       <div style="display:flex;gap:4px;margin-top:5px;">
         <button class="sc-add"
-          style="flex:3;font-size:11px;padding:7px;"
-          onclick="sclProject()">▶ Project</button>
-        <button class="sc-add"
-          style="flex:1;font-size:11px;padding:7px;background:var(--gold-dim);"
-          onclick="sclAddSO()" title="Add to Service Order">📋</button>
-        <button class="sc-add"
           style="flex:1;font-size:11px;padding:7px;
             background:var(--bg-card);border:1px solid var(--border-dim);color:var(--text-2);"
           onclick="sclAddSchedule()" title="Add to Schedule">📅</button>
