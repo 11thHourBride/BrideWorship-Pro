@@ -1,13 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   BrideWorship Pro — fix3.js  (v2)
-   Fix 1 : Slide fills the entire stage / projection fullscreen
-   Fix 2 : Smart scripture lookup
-            – Custom autocomplete (hidden until typing)
-            – Space in "Vs." jumps to "end" field
-            – Ctrl+K activates the lookup from anywhere
-            – Click panel label → auto-focus + select book field
-            – PROJECTION BUG FIXED (bypasses unreachable _bib)
-   Fix 3 : Remote control for phones / tablets via WebRTC
+  BRIDEWORSHIP PRESENTATION FIX 3
 ═══════════════════════════════════════════════════════════ */
 
 (function BW_Fix3() {
@@ -85,7 +77,7 @@
     if (_origOpenProj) await _origOpenProj();
     setTimeout(() => {
       try {
-        const pw = window.S?.projWin;
+        const pw = S?.projWin;
         if (pw && !pw.closed) pw.document.documentElement.requestFullscreen?.();
       } catch (e) {}
     }, 900);
@@ -239,6 +231,12 @@
 
       <!-- Action buttons -->
       <div style="display:flex;gap:4px;margin-top:5px;">
+        <button class="sc-add"
+          style="flex:3;font-size:11px;padding:7px;"
+          onclick="sclProject()">▶ Project</button>
+        <button class="sc-add"
+          style="flex:1;font-size:11px;padding:7px;background:var(--gold-dim);"
+          onclick="sclAddSO()" title="Add to Service Order">📋</button>
         <button class="sc-add"
           style="flex:1;font-size:11px;padding:7px;
             background:var(--bg-card);border:1px solid var(--border-dim);color:var(--text-2);"
@@ -585,17 +583,18 @@
     /* Parse "BookName Chapter" from ref to build per-verse labels cleanly */
     const refBase = ref.replace(/:\d.*$/, '').trim(); // e.g. "Genesis 1"
 
-    window.S.songIdx = null;
-    window.S.slides  = verses.map(v => ({
+    /* S is a `let` in BrideWorship.js — accessible as plain S, not window.S */
+    S.songIdx = null;
+    S.slides  = verses.map(v => ({
       section: `${refBase}:${v.num}`,
       text:    v.text.trim(),
       version: 'KJV',
     }));
-    window.S.cur = 0;
+    S.cur = 0;
 
-    if (typeof renderQueue  === 'function') renderQueue();
-    if (typeof renderSlide  === 'function') renderSlide();
-    if (typeof centerTab    === 'function') {
+    if (typeof renderQueue === 'function') renderQueue();
+    if (typeof renderSlide === 'function') renderSlide();
+    if (typeof centerTab   === 'function') {
       centerTab(document.querySelectorAll('.ctab')[0], 'slides-view');
     }
   }
@@ -841,11 +840,11 @@
 
   function _sendStateToConn(conn) {
     if (!conn.open) return;
-    conn.send({ type:'state', live:window.S?.live??false, blanked:window.S?.blanked??false,
-      frozen:window.S?.frozen??false, cur:window.S?.cur??0,
-      total:window.S?.slides?.length??0,
-      section:window.S?.slides?.[window.S?.cur]?.section||'—',
-      song:window.S?.songIdx!=null?(window.SONGS?.[window.S.songIdx]?.title||''):'',
+    conn.send({ type:'state', live:S?.live??false, blanked:S?.blanked??false,
+      frozen:S?.frozen??false, cur:S?.cur??0,
+      total:S?.slides?.length??0,
+      section:S?.slides?.[S?.cur]?.section||'—',
+      song:S?.songIdx!=null?(SONGS?.[S.songIdx]?.title||''):'',
     });
   }
 
