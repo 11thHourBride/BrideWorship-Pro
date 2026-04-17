@@ -560,15 +560,7 @@
       style="min-height:90px;resize:vertical;font-size:12px;line-height:1.8;"
       placeholder="Type or paste content…&#10;&#10;Songs: leave blank to auto-load from library.&#10;Scripture: paste verse text here.&#10;Announcement: type your text."></textarea>
 
-    <!-- Scripture lookup — shown only for scripture type -->
-    <div id="so-scripture-lookup" style="display:none;margin-top:7px;">
-      <div style="display:flex;gap:5px;">
-        <input class="sc-input" id="so-sc-ref"
-          placeholder="e.g. John 3:16 — press Enter to look up"
-          onkeydown="if(event.key==='Enter')lookupSOScripture()" style="flex:1;">
-        <button class="sc-add" onclick="lookupSOScripture()">Look Up</button>
-      </div>
-    </div>
+   
 
     <!-- Action buttons -->
     <div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;">
@@ -666,7 +658,15 @@
       <div class="omt-counter" id="omt-counter">— / —</div>
     </div>
   </div>
-
+ <!-- Scripture lookup — shown only for scripture type -->
+    <div id="so-scripture-lookup" style="display:none;margin-top:7px;">
+      <div style="display:flex;gap:5px;">
+        <input class="sc-input" id="so-sc-ref"
+          placeholder="e.g. John 3:16 — press Enter to look up"
+          onkeydown="if(event.key==='Enter')lookupSOScripture()" style="flex:1;">
+        <button class="sc-add" onclick="lookupSOScripture()">Look Up</button>
+      </div>
+    </div>
   <!-- ══ SCROLLABLE SECTIONS ══ -->
   <div class="right-inner" id="right-inner-scroll">
 
@@ -1179,7 +1179,7 @@
           <tr><td><kbd>R</kbd></td><td>Reset timer</td></tr>
           <tr><td><kbd>+</kbd> <kbd>=</kbd></td><td>Increase text size</td></tr>
           <tr><td><kbd>−</kbd></td><td>Decrease text size</td></tr>
-          <tr><td><kbd>P</kbd></td><td>Scripture Lookup</td></tr>
+          <tr><td><kbd>Ctrl</kbd> + <kbd>K</kbd></td><td>Scripture Lookup</td></tr>
           <tr><td><kbd>Esc</kbd></td><td>Close modal / Blank screen</td></tr>
         </tbody>
       </table>
@@ -1890,6 +1890,7 @@
 <script src="js/fix.js"></script>
 <script src="js/theme-engine.js"></script>
 <script src="js/fix2.js"></script>
+<script src="js/fix3.js"></script>
 
 </body>
 </html>
