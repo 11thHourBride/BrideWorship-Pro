@@ -94,7 +94,7 @@ html,body{
 <div id="proj-bg"></div>
 <div id="proj-inner">
   <div id="proj-ref"></div>
-  <div id="proj-text">BrideWorship Pro</div>
+  <div id="proj-text"></div>
 </div>
 <div id="proj-footer"></div>
 <div id="proj-lt"></div>
@@ -253,21 +253,4 @@ html,body{
 
 
  
-  /* ─────────────────────────────────────────────────────────
-     BOOT — run after the main app JS
-  ───────────────────────────────────────────────────────── */
-  function _boot() {
-    _wireBookGridDelegation();
-    _wireSelectKeys();
-    console.info('[BW fix2.js] Projection formatting + scripture keyboard loaded.');
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', _boot);
-  } else {
-    /* DOMContentLoaded already fired — defer one tick so BrideWorship.js
-       own DOMContentLoaded handler and fix.js both run first.           */
-    setTimeout(_boot, 120);
-  }
-
 })();
