@@ -826,7 +826,7 @@ let S = {
   loop: false, ccli: '', bibleVersion: 'NIV',
   transName: 'fade', transSpeed: 0.5,
   deco: {grid:true, corners:true},
-  ndi: {active:false, name:'BrideWorship Pro', res:'1920x1080', fps:'30', alpha:'no', group:'public'},
+  ndi: {active:false, name:'', res:'1920x1080', fps:'30', alpha:'no', group:'public'},
   appSettings: {showCcli:true, showTitle:true, showSection:true, confirmLive:false, autoSave:true, churchName:'', logoText:'Bride Worship', bibleVer:'NIV'},
 };
 
@@ -8086,6 +8086,8 @@ lookupSOScripture = function () {
   }
   if (_origLookupSOScripture) _origLookupSOScripture();
 };
+
+
 /* ══════════════════════════════════════
 DOMContentLoaded
 ══════════════════════════════════════ */
