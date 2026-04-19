@@ -1,13 +1,10 @@
 /* ═══════════════════════════════════════════════════════════
-   BrideWorship Pro — fix7.js
-   Fix 1 : Projection window text auto-fills the screen.
-           Font size scales to fill available space, updates
-           live on every slide change.
-   Fix 2 : Timer font-size +/- controls in the timer panel.
-   Fix 3 : System font detection (Local Font Access API +
-           curated fallback list) + import your own font
-           files (.ttf / .otf / .woff / .woff2) — all added
-           to the Font selector in Text Style and Templates.
+   BrideWorship Pro — fix7.js  (v2)
+   Fix 1 : Projection text fills the screen like EasyWorship.
+           Size is calculated from screen dimensions and the
+           actual line/character count of each slide — always
+           large, always visible from a distance.
+   Fix 3 : System font detection + import font files.
 ═══════════════════════════════════════════════════════════ */
 
 (function BW_Fix7() {
@@ -20,41 +17,62 @@
   _style.id = 'bw-fix7-styles';
   _style.textContent = `
 
-    /* ── Timer font-size controls ─────────────────────────── */
-    #timer-size-ctrl {
+    /* ── Projection window — text fill behaviour ──────────── */
+    /* These rules are injected INTO the projection popup window
+       via projWindowHTML override — see below.               */
+
+    /* ── Timer: bold + size controls ─────────────────────── */
+    #t-display {
+      font-weight: 700 !important;
+      transition: font-size .2s;
+    }
+
+    #timer-size-row {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 7px;
       margin-top: 10px;
     }
-    .timer-sz-label {
+    .tsz-label {
       font-size: 11px;
       color: var(--text-3);
       white-space: nowrap;
+      flex-shrink: 0;
     }
-    .timer-sz-btn {
+    .tsz-btn {
       width: 26px; height: 26px;
       border: 1px solid var(--border-dim);
       border-radius: 4px;
       background: var(--bg-card);
       color: var(--text-2);
-      font-size: 15px;
+      font-size: 16px;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
       transition: background .1s;
       line-height: 1;
+      user-select: none;
     }
-    .timer-sz-btn:hover  { background: var(--bg-hover); }
-    .timer-sz-btn:active { opacity: .6; }
-    #timer-sz-val {
-      font-size: 12px;
-      color: var(--text-2);
-      min-width: 32px;
+    .tsz-btn:hover  { background: var(--bg-hover); }
+    .tsz-btn:active { opacity: .6; }
+    #tsz-inp {
+      width: 56px;
       text-align: center;
+      padding: 4px 6px;
+      font-size: 12px;
+      font-family: 'Lato', sans-serif;
+      background: var(--bg-card);
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      color: var(--text-1, #e0ddd8);
+      flex-shrink: 0;
+    }
+    #tsz-inp:focus {
+      outline: none;
+      border-color: var(--gold-dim);
     }
 
-    /* ── Font manager section ─────────────────────────────── */
+    /* ── Font manager ─────────────────────────────────────── */
     #font-manager-section {
       margin-top: 8px;
       display: flex;
@@ -72,63 +90,46 @@
       display: flex;
       gap: 5px;
       align-items: center;
+      flex-wrap: wrap;
     }
-    #fm-font-sel {
-      flex: 1;
-      min-width: 0;
+    #fm-font-sel { flex: 1; min-width: 0; }
+
+    .fm-apply-btn {
+      flex-shrink: 0;
+      padding: 5px 10px;
+      background: var(--gold, #c9a84c);
+      border: none; border-radius: 4px;
+      color: #000; font-size: 11px; font-weight: 700;
+      cursor: pointer; transition: opacity .15s;
     }
-    .fm-import-btn {
+    .fm-apply-btn:hover { opacity: .85; }
+
+    .fm-scan-btn, .fm-import-btn {
       flex-shrink: 0;
       padding: 5px 9px;
       background: var(--bg-card);
       border: 1px solid var(--border-dim);
       border-radius: 4px;
-      color: var(--text-2);
-      font-size: 11px;
-      cursor: pointer;
-      white-space: nowrap;
+      color: var(--text-2); font-size: 11px;
+      cursor: pointer; white-space: nowrap;
       transition: background .1s, border-color .15s;
     }
+    .fm-scan-btn:hover,
     .fm-import-btn:hover {
       background: var(--bg-hover);
       border-color: var(--gold-dim);
       color: var(--gold);
     }
-    .fm-scan-btn {
-      flex-shrink: 0;
-      padding: 5px 9px;
-      background: var(--bg-card);
-      border: 1px solid var(--border-dim);
-      border-radius: 4px;
-      color: var(--text-2);
-      font-size: 11px;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background .1s;
-    }
-    .fm-scan-btn:hover { background: var(--bg-hover); }
-    .fm-apply-btn {
-      flex-shrink: 0;
-      padding: 5px 10px;
-      background: var(--gold, #c9a84c);
-      border: none;
-      border-radius: 4px;
-      color: #000;
-      font-size: 11px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: opacity .15s;
-    }
-    .fm-apply-btn:hover { opacity: .85; }
+
     #fm-preview {
       padding: 8px 10px;
       background: var(--bg-deep, #09090f);
       border: 1px solid var(--border-dim);
       border-radius: 5px;
-      font-size: 18px;
+      font-size: 20px;
       color: #f6f2ec;
       text-align: center;
-      min-height: 40px;
+      min-height: 44px;
       transition: font-family .2s;
       word-break: break-word;
     }
@@ -137,34 +138,20 @@
       color: var(--text-3);
       min-height: 14px;
     }
-
-    /* Imported font chips */
-    .fm-chip-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
+    .fm-chip-row { display: flex; flex-wrap: wrap; gap: 4px; }
     .fm-chip {
-      display: flex;
-      align-items: center;
-      gap: 5px;
+      display: flex; align-items: center; gap: 5px;
       padding: 3px 8px;
       background: var(--bg-card);
       border: 1px solid var(--border-dim);
       border-radius: 12px;
-      font-size: 10px;
-      color: var(--text-2);
-      cursor: pointer;
-      transition: border-color .12s;
+      font-size: 10px; color: var(--text-2);
+      cursor: pointer; transition: border-color .12s;
     }
     .fm-chip:hover        { border-color: var(--gold-dim); }
-    .fm-chip.active       { border-color: var(--gold); color: var(--gold); }
     .fm-chip-del {
-      font-size: 10px;
-      color: var(--text-3);
-      cursor: pointer;
-      line-height: 1;
-      padding: 0 2px;
+      font-size: 10px; color: var(--text-3);
+      cursor: pointer; line-height: 1; padding: 0 2px;
     }
     .fm-chip-del:hover { color: var(--red, #e05050); }
   `;
@@ -172,151 +159,177 @@
 
 
   /* ══════════════════════════════════════════════════════════
-     FIX 1 — AUTO-FIT TEXT IN PROJECTION WINDOW
+     FIX 1 — PROJECTION TEXT FILLS THE SCREEN
+     ──────────────────────────────────────────────────────────
+     Formula (mirrors EasyWorship / ProPresenter):
+       1. Count logical lines (newline-split + word-wrap estimate)
+       2. fontSize = min(
+             availH / lines * LINE_FILL,   ← fill vertically
+             availW / maxCharsInLine * CHAR_W  ← don't overflow horizontally
+          )
+       3. Clamp to [MIN_PX, MAX_PX]
+     Result: short text → very large; long text → smaller but
+     always fills the slide area and stays fully readable.
   ══════════════════════════════════════════════════════════ */
 
-  /*
-   * Algorithm: measure the projection window's inner size,
-   * then binary-search for the largest font-size (px) where
-   * the text element doesn't overflow its container.
-   * Runs after every push() and on window resize inside projWin.
+  const LINE_FILL = 0.80;   // fraction of a "line slot" the text occupies
+  const CHAR_W    = 0.60;   // average char width as fraction of font-size
+  const PAD_H     = 0.10;   // horizontal padding (each side, fraction of W)
+  const PAD_V     = 0.12;   // vertical padding (each side, fraction of H)
+  const REF_H_EST = 0.04;   // estimated reference-line height fraction of H
+  const FOOT_H_EST= 0.035;
+  const MIN_PX    = 28;     // absolute minimum — always readable from a distance
+  const MAX_PX    = 200;
+
+  /**
+   * Calculate the ideal font size for the given text on a
+   * screen of (screenW × screenH) pixels.
    */
+  function calcFitSize(text, screenW, screenH) {
+    if (!text || !screenW || !screenH) return 60;
 
-  const PROJ_FIT_MIN = 14;   // px — never go below this
-  const PROJ_FIT_MAX = 220;  // px — never go above this
-  const PROJ_PAD_H   = 0.14; // horizontal padding as fraction of width
-  const PROJ_PAD_V   = 0.16; // vertical padding as fraction of height
+    const availW = screenW * (1 - PAD_H * 2);
+    const availH = screenH * (1 - PAD_V * 2)
+                 - screenH * REF_H_EST
+                 - screenH * FOOT_H_EST;
 
-  function fitProjectionText() {
-    const pw = S?.projWin;
-    if (!pw || pw.closed) return;
-    const d   = pw.document;
-    const txt = d.getElementById('proj-text');
-    const ref = d.getElementById('proj-ref');
-    if (!txt) return;
+    /* Split into raw lines */
+    const rawLines = text.split('\n').filter(l => l.trim() !== '');
+    if (!rawLines.length) return MIN_PX;
 
-    const W = pw.innerWidth  || d.documentElement.clientWidth  || 1920;
-    const H = pw.innerHeight || d.documentElement.clientHeight || 1080;
-
-    /* Available area (subtract ref height, footer, padding) */
-    const refH  = ref ? ref.offsetHeight : 0;
-    const footH = 30; // estimated footer height
-    const availW = W * (1 - PROJ_PAD_H * 2);
-    const availH = H * (1 - PROJ_PAD_V * 2) - refH - footH;
-
-    if (availW <= 0 || availH <= 0) return;
-
-    /* Binary search for best font size */
-    let lo = PROJ_FIT_MIN, hi = PROJ_FIT_MAX, best = lo;
-    txt.style.whiteSpace = 'pre-wrap';
-    txt.style.width      = availW + 'px';
-
-    for (let iter = 0; iter < 16; iter++) {
-      const mid = Math.floor((lo + hi) / 2);
-      txt.style.fontSize = mid + 'px';
-      const fits = txt.scrollWidth <= availW + 2 &&
-                   txt.scrollHeight <= availH + 2;
-      if (fits) { best = mid; lo = mid + 1; }
-      else       { hi = mid - 1; }
+    /* For each raw line, estimate how many display lines it wraps to
+       at a trial font size.  We start with a rough estimate then refine. */
+    function countDisplayLines(fz) {
+      const charsPerLine = availW / (fz * CHAR_W);
+      let total = 0;
+      rawLines.forEach(line => {
+        total += Math.max(1, Math.ceil(line.length / charsPerLine));
+      });
+      return total;
     }
 
-    txt.style.fontSize = best + 'px';
-    txt.style.width    = '';
-    txt.style.whiteSpace = '';
+    /* Find font size where all display lines fit vertically */
+    /* Start from a generous size and work down if needed */
+    let fz = Math.floor(availH / rawLines.length * LINE_FILL);
+    fz = Math.min(fz, MAX_PX);
+    fz = Math.max(fz, MIN_PX);
 
-    /* Sync the local preview font size indicator */
-    const szVal = document.getElementById('sz-val');
-    if (szVal) szVal.textContent = best;
-    S.fontSize = best;
+    /* Refine: if wrapped lines overflow, reduce */
+    for (let i = 0; i < 20; i++) {
+      const lines = countDisplayLines(fz);
+      const usedH = lines * (fz / LINE_FILL);
+      if (usedH <= availH || fz <= MIN_PX) break;
+      fz = Math.floor(fz * (availH / usedH) * 0.95);
+      fz = Math.max(fz, MIN_PX);
+    }
+
+    return Math.round(Math.max(MIN_PX, Math.min(MAX_PX, fz)));
   }
 
-  /* Patch push() to auto-fit after every slide update */
+  /* Apply the calculated size to the projection window */
+  function applyFitToProj() {
+    const pw = S?.projWin;
+    if (!pw || pw.closed) return;
+    if (!S?.slides?.length) return;
+
+    const d   = pw.document;
+    const txt = d.getElementById('proj-text');
+    if (!txt) return;
+
+    /* Don't resize during timer projection */
+    if (S?.timer?.projected && S?.timer?.running) return;
+
+    const W  = pw.innerWidth  || 1920;
+    const H  = pw.innerHeight || 1080;
+    const sl = S.slides[S.cur] || {};
+    const fz = calcFitSize(sl.text || '', W, H);
+
+    txt.style.fontSize   = fz + 'px';
+    txt.style.lineHeight = '1.25';
+    txt.style.width      = '100%';
+
+    /* Keep local sz-val label in sync — informational only */
+    const szVal = document.getElementById('sz-val');
+    if (szVal) szVal.textContent = fz;
+  }
+
+  /* Patch push() */
   const _origPush = window.push;
   window.push = function () {
     if (_origPush) _origPush();
-    /* Give the projection window one frame to render, then fit */
-    requestAnimationFrame(() => setTimeout(fitProjectionText, 40));
+    requestAnimationFrame(() => setTimeout(applyFitToProj, 30));
   };
 
-  /* Also fit when the projection window is resized or goes fullscreen */
+  /* Re-fit on projection window resize / fullscreen */
   const _origOpenProj = window.openProjection;
   window.openProjection = async function () {
     if (_origOpenProj) await _origOpenProj();
-    /* Wait for window to paint then fit */
     setTimeout(() => {
       const pw = S?.projWin;
       if (!pw || pw.closed) return;
-      pw.addEventListener('resize', fitProjectionText, { passive:true });
-      pw.document.addEventListener('fullscreenchange', () =>
-        setTimeout(fitProjectionText, 120));
-      setTimeout(fitProjectionText, 400);
-    }, 800);
+      pw.addEventListener('resize',           () => setTimeout(applyFitToProj, 80), {passive:true});
+      pw.document.addEventListener('fullscreenchange', () => setTimeout(applyFitToProj, 120));
+      setTimeout(applyFitToProj, 500);
+    }, 900);
   };
 
-  /* Expose for external callers */
-  window.fitProjectionText = fitProjectionText;
+  window.applyFitToProj = applyFitToProj;
 
 
   /* ══════════════════════════════════════════════════════════
-     FIX 2 — TIMER FONT-SIZE CONTROLS
+     FIX 2 — TIMER: BOLD + CUSTOM SIZE INPUT
   ══════════════════════════════════════════════════════════ */
 
-  /* Default timer display size (matches .timer-display CSS) */
-  let _timerFontPx = 96;
+  let _timerPx = parseInt(localStorage.getItem('bw_timer_font') || '96');
 
-  function buildTimerSizeCtrl() {
-    if (document.getElementById('timer-size-ctrl')) return;
-
-    /* Find the timer panel */
-    const timerPanel = document.getElementById('timer-view');
-    if (!timerPanel) return;
-
-    /* Insert after the .timer-display element */
-    const disp = timerPanel.querySelector('.timer-display, #t-display');
+  function buildTimerSizeRow() {
+    if (document.getElementById('timer-size-row')) return;
+    const disp = document.getElementById('t-display');
     if (!disp) return;
 
-    const wrap = document.createElement('div');
-    wrap.id = 'timer-size-ctrl';
-    wrap.innerHTML = `
-      <span class="timer-sz-label">Timer Size</span>
-      <button class="timer-sz-btn" onclick="timerSzChange(-8)">−</button>
-      <span id="timer-sz-val">${_timerFontPx}px</span>
-      <button class="timer-sz-btn" onclick="timerSzChange(+8)">+</button>
+    const row = document.createElement('div');
+    row.id = 'timer-size-row';
+    row.innerHTML = `
+      <span class="tsz-label">Timer Size</span>
+      <button class="tsz-btn" onclick="tszStep(-8)" title="Decrease">−</button>
+      <input  id="tsz-inp" type="number" min="24" max="480"
+              value="${_timerPx}"
+              onchange="tszSet(parseInt(this.value))"
+              onkeydown="if(event.key==='Enter')tszSet(parseInt(this.value))">
+      <span class="tsz-label">px</span>
+      <button class="tsz-btn" onclick="tszStep(+8)" title="Increase">+</button>
     `;
-    disp.insertAdjacentElement('afterend', wrap);
-
-    /* Apply persisted value */
-    const saved = parseInt(localStorage.getItem('bw_timer_font') || '0');
-    if (saved) { _timerFontPx = saved; _applyTimerFont(); }
+    disp.insertAdjacentElement('afterend', row);
+    _applyTimerPx();
   }
 
-  window.timerSzChange = function (delta) {
-    _timerFontPx = Math.max(24, Math.min(320, _timerFontPx + delta));
-    _applyTimerFont();
-    localStorage.setItem('bw_timer_font', String(_timerFontPx));
+  window.tszStep = function (d) {
+    tszSet(_timerPx + d);
+  };
+  window.tszSet  = function (v) {
+    if (!v || isNaN(v)) return;
+    _timerPx = Math.max(24, Math.min(480, v));
+    const inp = document.getElementById('tsz-inp');
+    if (inp) inp.value = _timerPx;
+    _applyTimerPx();
+    localStorage.setItem('bw_timer_font', String(_timerPx));
   };
 
-  function _applyTimerFont() {
-    const disp  = document.getElementById('t-display');
-    const label = document.getElementById('timer-sz-val');
-    if (disp)  disp.style.fontSize  = _timerFontPx + 'px';
-    if (label) label.textContent     = _timerFontPx + 'px';
+  function _applyTimerPx() {
+    const disp = document.getElementById('t-display');
+    if (disp) { disp.style.fontSize = _timerPx + 'px'; disp.style.fontWeight = '700'; }
 
-    /* Also scale on projection window */
+    /* Projection window timer */
     const pw = S?.projWin;
-    if (pw && !pw.closed) {
-      const ptxt = pw.document.getElementById('proj-text');
-      /* Only if timer is currently projected */
-      if (ptxt && S?.timer?.projected) {
-        ptxt.style.fontSize = _timerFontPx + 'px';
-      }
+    if (pw && !pw.closed && S?.timer?.projected) {
+      const el = pw.document.getElementById('proj-text');
+      if (el) el.style.fontSize = _timerPx + 'px';
     }
-
-    /* Stage display */
+    /* Stage */
     const sw = S?.stageWin;
     if (sw && !sw.closed) {
-      const stmr = sw.document.getElementById('stg-timer');
-      if (stmr) stmr.style.fontSize = Math.round(_timerFontPx * 0.45) + 'px';
+      const el = sw.document.getElementById('stg-timer');
+      if (el) { el.style.fontSize = Math.round(_timerPx * 0.42) + 'px'; el.style.fontWeight = '700'; }
     }
   }
 
@@ -325,242 +338,117 @@
      FIX 3 — SYSTEM + IMPORTED FONT MANAGER
   ══════════════════════════════════════════════════════════ */
 
-  /* Curated fallback list — fonts commonly installed on
-     Windows, macOS, Linux, Android, iOS                    */
   const COMMON_SYSTEM_FONTS = [
-    /* Serif */
     'Georgia','Palatino Linotype','Book Antiqua','Times New Roman',
-    'Garamond','Didot','Bodoni MT','Baskerville','Cambria',
-    'Constantia','Calisto MT','Copperplate','Goudy Old Style',
-    'Hoefler Text','Perpetua','Rockwell',
-    /* Sans-serif */
-    'Arial','Arial Narrow','Arial Black','Helvetica','Helvetica Neue',
-    'Verdana','Tahoma','Trebuchet MS','Geneva','Calibri','Candara',
-    'Corbel','Franklin Gothic Medium','Gill Sans','Impact',
-    'Lucida Sans','Optima','Segoe UI','Myriad Pro',
-    /* Monospace */
-    'Courier New','Lucida Console','Consolas','Monaco',
-    'Andale Mono','Menlo','Cascadia Code',
-    /* Display */
-    'Copperplate Gothic','Papyrus','Broadway','Rockwell Extra Bold',
-    'Stencil','Brush Script MT',
-    /* Google Fonts (loaded in app) */
-    'Playfair Display','Cinzel','Lato',
-    /* Mac-specific */
-    'San Francisco','Avenir','Avenir Next','Futura','Gill Sans MT',
-    /* Windows-specific */
+    'Garamond','Cambria','Constantia','Rockwell','Bodoni MT','Baskerville',
+    'Hoefler Text','Perpetua','Didot','Copperplate',
+    'Arial','Arial Black','Helvetica','Helvetica Neue','Verdana','Tahoma',
+    'Trebuchet MS','Geneva','Calibri','Candara','Corbel','Segoe UI',
+    'Franklin Gothic Medium','Gill Sans','Impact','Optima','Myriad Pro',
+    'Lucida Sans','Futura','Avenir','Avenir Next',
+    'Courier New','Consolas','Lucida Console','Monaco','Menlo',
+    'Brush Script MT','Copperplate Gothic','Papyrus','Broadway',
     'Segoe Print','Segoe Script','Vladimir Script',
+    'Playfair Display','Cinzel','Lato',
   ].sort();
 
-  /* Imported fonts: { name, url, family } */
-  let _importedFonts = JSON.parse(
-    localStorage.getItem('bw_imported_fonts') || '[]'
-  );
+  let _importedFonts = JSON.parse(localStorage.getItem('bw_imported_fonts') || '[]');
+  let _allFonts      = [];
 
-  /* All detected/available fonts merged */
-  let _allFonts = [];
-
-  /* Load imported fonts into the document */
   function _mountImportedFonts() {
     _importedFonts.forEach(f => {
-      if (!document.getElementById('ff-' + _slugify(f.family))) {
-        _injectFontFace(f.family, f.url);
-      }
+      if (!document.getElementById('ff-' + _slug(f.family)))
+        _injectFF(f.family, f.url);
     });
   }
-
-  function _injectFontFace(family, url) {
+  function _injectFF(family, url) {
     const s = document.createElement('style');
-    s.id = 'ff-' + _slugify(family);
-    s.textContent = `@font-face {
-      font-family: '${family}';
-      src: url('${url}');
-      font-display: swap;
-    }`;
+    s.id = 'ff-' + _slug(family);
+    s.textContent = `@font-face{font-family:'${family}';src:url('${url}');font-display:swap;}`;
     document.head.appendChild(s);
   }
 
-  /* ── Detect available fonts ── */
-  async function detectSystemFonts() {
-    const statusEl = document.getElementById('fm-status');
-    if (statusEl) statusEl.textContent = 'Scanning…';
+  async function _detectFonts() {
+    const st = document.getElementById('fm-status');
+    if (st) st.textContent = 'Scanning…';
+    let detected = [];
 
-    let detected = [...COMMON_SYSTEM_FONTS];
-
-    /* Try Local Font Access API (Chrome 103+ with flag or permission) */
     if ('queryLocalFonts' in window) {
       try {
         const fonts = await window.queryLocalFonts();
-        const families = [...new Set(fonts.map(f => f.family))].sort();
-        detected = [...new Set([...families, ...COMMON_SYSTEM_FONTS])].sort();
-        if (statusEl) statusEl.textContent =
-          `✓ ${families.length} system fonts detected`;
+        detected = [...new Set(fonts.map(f => f.family))].sort();
+        if (st) st.textContent = `✓ ${detected.length} system fonts found`;
       } catch(e) {
-        /* Permission denied or API not available */
-        detected = await _canvasDetect();
-        if (statusEl) statusEl.textContent =
-          `✓ ${detected.length} fonts detected (canvas method)`;
+        detected = await _canvasDetect(st);
       }
     } else {
-      detected = await _canvasDetect();
-      if (statusEl) statusEl.textContent =
-        `✓ ${detected.length} fonts available`;
+      detected = await _canvasDetect(st);
     }
 
-    /* Merge with imported fonts */
-    const importedNames = _importedFonts.map(f => f.family);
-    _allFonts = [...new Set([...detected, ...importedNames])].sort();
-
-    _populateFontSelectors();
+    _allFonts = [...new Set([
+      ...detected,
+      ..._importedFonts.map(f => f.family)
+    ])].sort();
+    _populateSelectors();
     return _allFonts;
   }
 
-  /* Canvas-based font detection — tests if font renders
-     differently from a known baseline                      */
-  async function _canvasDetect() {
-    const canvas  = document.createElement('canvas');
-    canvas.width  = 200; canvas.height = 50;
-    const ctx     = canvas.getContext('2d');
-    const testStr = 'mmmmmmmmmmlli';
-    const baseline = 'monospace';
-    const size    = '36px';
-
-    function measure(family) {
-      ctx.font = `${size} '${family}', ${baseline}`;
-      return ctx.measureText(testStr).width;
+  async function _canvasDetect(st) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 200; canvas.height = 50;
+    const ctx  = canvas.getContext('2d');
+    const base = (function() {
+      ctx.font = "36px '__x999'";
+      return ctx.measureText('mmmmmmmmmmlli').width;
+    })();
+    const found = [];
+    for (let i = 0; i < COMMON_SYSTEM_FONTS.length; i++) {
+      ctx.font = `36px '${COMMON_SYSTEM_FONTS[i]}', serif`;
+      if (ctx.measureText('mmmmmmmmmmlli').width !== base)
+        found.push(COMMON_SYSTEM_FONTS[i]);
+      if (i % 15 === 0) await new Promise(r => setTimeout(r, 0));
     }
-
-    const base = measure('__nonexistent__9999');
-    const available = [];
-    for (const font of COMMON_SYSTEM_FONTS) {
-      if (measure(font) !== base) available.push(font);
-      /* Yield every 20 fonts to avoid blocking */
-      if (available.length % 20 === 0)
-        await new Promise(r => setTimeout(r, 0));
-    }
-    return available;
+    if (st) st.textContent = `✓ ${found.length} fonts detected`;
+    return found;
   }
 
-  /* ── Populate every font <select> in the app ── */
-  function _populateFontSelectors() {
-    const importedNames = _importedFonts.map(f => f.family);
-
-    /* All font selectors: right-panel, template editor, any future */
-    const selectors = [
-      '#font-sel',          /* right panel Text Style */
-      '#tmpl-font',         /* template editor */
-      '#fm-font-sel',       /* font manager */
-    ];
-
-    selectors.forEach(sel => {
+  function _populateSelectors() {
+    const imported = _importedFonts.map(f => f.family);
+    ['#font-sel','#tmpl-font','#fm-font-sel'].forEach(sel => {
       const el = document.querySelector(sel);
       if (!el) return;
+      const cur = el.value;
+      /* Remove previously injected dynamic options */
+      Array.from(el.querySelectorAll('optgroup[data-dyn]')).forEach(g => g.remove());
 
-      const currentVal = el.value;
-
-      /* Remove any previously added dynamic options
-         (keep the original hardcoded ones)            */
-      Array.from(el.options).forEach(opt => {
-        if (opt.dataset.dynamic === 'true') el.remove(opt.index);
-      });
-
-      /* Group: Imported fonts */
-      if (importedNames.length) {
-        const grpImp = document.createElement('optgroup');
-        grpImp.label = '── Imported Fonts ──';
-        importedNames.forEach(name => {
-          const opt = document.createElement('option');
-          opt.value = name; opt.textContent = name;
-          opt.dataset.dynamic = 'true';
-          grpImp.appendChild(opt);
+      if (imported.length) {
+        const g = document.createElement('optgroup');
+        g.label = '── Imported ──';
+        g.dataset.dyn = '1';
+        imported.forEach(n => {
+          const o = document.createElement('option');
+          o.value = n; o.textContent = n;
+          g.appendChild(o);
         });
-        el.appendChild(grpImp);
+        el.appendChild(g);
       }
-
-      /* Group: System fonts */
       if (_allFonts.length) {
-        const grpSys = document.createElement('optgroup');
-        grpSys.label = '── System Fonts ──';
-        _allFonts.forEach(name => {
-          if (importedNames.includes(name)) return; /* already above */
-          const opt = document.createElement('option');
-          opt.value = name; opt.textContent = name;
-          opt.dataset.dynamic = 'true';
-          grpSys.appendChild(opt);
+        const g = document.createElement('optgroup');
+        g.label = '── System ──';
+        g.dataset.dyn = '1';
+        _allFonts.filter(n => !imported.includes(n)).forEach(n => {
+          const o = document.createElement('option');
+          o.value = n; o.textContent = n;
+          g.appendChild(o);
         });
-        el.appendChild(grpSys);
+        el.appendChild(g);
       }
-
-      /* Restore previous selection */
-      if (currentVal) el.value = currentVal;
+      if (cur) el.value = cur;
     });
-
-    /* Refresh chip list */
-    _renderImportedChips();
+    _renderChips();
   }
 
-  /* ── Import a font file ── */
-  function triggerFontImport() {
-    const input = document.createElement('input');
-    input.type   = 'file';
-    input.accept = '.ttf,.otf,.woff,.woff2';
-    input.multiple = true;
-    input.style.display = 'none';
-    input.addEventListener('change', _handleFontFiles);
-    document.body.appendChild(input);
-    input.click();
-    setTimeout(() => document.body.removeChild(input), 10000);
-  }
-
-  function _handleFontFiles(event) {
-    const files = Array.from(event.target.files || []);
-    if (!files.length) return;
-
-    const statusEl = document.getElementById('fm-status');
-    let loaded = 0;
-
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const url    = e.target.result; // data URL
-        const family = file.name
-          .replace(/\.[^.]+$/, '')         // strip extension
-          .replace(/[-_]/g, ' ')           // dashes → spaces
-          .replace(/\b\w/g, c => c.toUpperCase()); // title-case
-
-        /* Avoid exact duplicates */
-        if (_importedFonts.some(f => f.family === family)) {
-          loaded++;
-          if (loaded === files.length && statusEl)
-            statusEl.textContent = `"${family}" already imported`;
-          return;
-        }
-
-        _injectFontFace(family, url);
-        _importedFonts.push({ family, url, name: file.name });
-
-        /* Persist — data URLs can be large; cap at 20 fonts */
-        if (_importedFonts.length > 20) _importedFonts.shift();
-        try {
-          localStorage.setItem('bw_imported_fonts', JSON.stringify(_importedFonts));
-        } catch(e) { /* quota exceeded — keep in memory */ }
-
-        if (!_allFonts.includes(family)) _allFonts.unshift(family);
-        loaded++;
-        if (loaded === files.length) {
-          _populateFontSelectors();
-          if (statusEl) statusEl.textContent =
-            `✓ Imported ${files.length} font${files.length !== 1 ? 's' : ''}`;
-          if (typeof showSchToast === 'function')
-            showSchToast(`✓ Font imported: ${family}`);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  /* ── Render imported font chips ── */
-  function _renderImportedChips() {
+  function _renderChips() {
     const row = document.getElementById('fm-chips');
     if (!row) return;
     if (!_importedFonts.length) {
@@ -568,62 +456,78 @@
       return;
     }
     row.innerHTML = _importedFonts.map((f, i) => `
-      <div class="fm-chip" onclick="fmApplyFont('${_esc(f.family)}')">
+      <div class="fm-chip" onclick="fmApply('${_esc(f.family)}')">
         <span style="font-family:'${_esc(f.family)}',serif;">${_esc(f.family)}</span>
-        <span class="fm-chip-del" onclick="event.stopPropagation();fmRemoveFont(${i})"
-          title="Remove">✕</span>
+        <span class="fm-chip-del" onclick="event.stopPropagation();fmRemove(${i})">✕</span>
       </div>`).join('');
   }
 
-  window.fmApplyFont = function (family) {
-    /* Apply to all font selectors + live preview */
+  window.fmApply = function (family) {
     ['#font-sel','#tmpl-font','#fm-font-sel'].forEach(sel => {
       const el = document.querySelector(sel);
       if (el) el.value = family;
     });
-    /* Apply to slide */
-    if (typeof setFont === 'function') {
-      S.format.font = family;
-      const el = document.getElementById('s-text');
-      if (el && typeof applyStyleToEl === 'function') applyStyleToEl(el);
-      if (typeof push === 'function') push();
-    }
-    /* Update preview box */
+    S.format.font = family;
+    const el = document.getElementById('s-text');
+    if (el && typeof applyStyleToEl === 'function') applyStyleToEl(el);
+    if (typeof push === 'function') push();
     const prev = document.getElementById('fm-preview');
     if (prev) prev.style.fontFamily = `'${family}', serif`;
-    if (typeof showSchToast === 'function')
-      showSchToast(`Font: ${family}`);
+    if (typeof showSchToast === 'function') showSchToast(`Font: ${family}`);
   };
 
-  window.fmRemoveFont = function (i) {
+  window.fmRemove = function (i) {
     const f = _importedFonts[i];
     if (!f) return;
-    /* Remove @font-face style */
-    const s = document.getElementById('ff-' + _slugify(f.family));
-    if (s) s.remove();
+    document.getElementById('ff-' + _slug(f.family))?.remove();
     _importedFonts.splice(i, 1);
     _allFonts = _allFonts.filter(n => n !== f.family);
-    try {
-      localStorage.setItem('bw_imported_fonts', JSON.stringify(_importedFonts));
-    } catch(e) {}
-    _populateFontSelectors();
+    try { localStorage.setItem('bw_imported_fonts', JSON.stringify(_importedFonts)); } catch(e) {}
+    _populateSelectors();
   };
 
-  /* Preview font on select change */
-  function _wireFmPreview() {
-    const sel  = document.getElementById('fm-font-sel');
-    const prev = document.getElementById('fm-preview');
-    if (!sel || !prev) return;
-    sel.addEventListener('change', () => {
-      prev.style.fontFamily = `'${sel.value}', serif`;
-    });
-  }
+  window.fmScanFonts = async function () { await _detectFonts(); };
 
-  /* ── Build the font manager widget inside Text Style accordion ── */
+  window.triggerFontImport = function () {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = '.ttf,.otf,.woff,.woff2'; inp.multiple = true;
+    inp.style.display = 'none';
+    inp.addEventListener('change', e => {
+      const files = Array.from(e.target.files || []);
+      if (!files.length) return;
+      const st = document.getElementById('fm-status');
+      let done = 0;
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const url    = ev.target.result;
+          const family = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
+                           .replace(/\b\w/g, c => c.toUpperCase());
+          if (!_importedFonts.some(f => f.family === family)) {
+            _injectFF(family, url);
+            _importedFonts.push({ family, url });
+            if (_importedFonts.length > 20) _importedFonts.shift();
+            if (!_allFonts.includes(family)) _allFonts.unshift(family);
+            try { localStorage.setItem('bw_imported_fonts', JSON.stringify(_importedFonts)); } catch(e) {}
+          }
+          done++;
+          if (done === files.length) {
+            _populateSelectors();
+            if (st) st.textContent = `✓ ${files.length} font${files.length>1?'s':''} imported`;
+            if (typeof showSchToast === 'function')
+              showSchToast(`✓ Font imported: ${family}`);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+    document.body.appendChild(inp);
+    inp.click();
+    setTimeout(() => inp.remove(), 15000);
+  };
+
   function buildFontManager() {
     if (document.getElementById('font-manager-section')) return;
-
-    /* Find the r-acc-body of the Text Style accordion */
     const accHead = Array.from(document.querySelectorAll('.r-acc-head'))
       .find(h => h.textContent.includes('Text Style'));
     if (!accHead) return;
@@ -634,62 +538,39 @@
     wrap.id = 'font-manager-section';
     wrap.innerHTML = `
       <div class="fm-label">Font Library</div>
-
-      <!-- Font selector + action buttons -->
       <div class="fm-row">
         <select class="fmt-select" id="fm-font-sel"></select>
-        <button class="fm-apply-btn" onclick="fmApplyFont(document.getElementById('fm-font-sel').value)">Apply</button>
+        <button class="fm-apply-btn" onclick="fmApply(document.getElementById('fm-font-sel').value)">Apply</button>
       </div>
-
-      <!-- Font preview -->
-      <div id="fm-preview">The quick brown fox…</div>
-
-      <!-- Action buttons row -->
-      <div class="fm-row" style="flex-wrap:wrap;gap:4px;">
-        <button class="fm-scan-btn" onclick="fmScanFonts()" title="Detect fonts installed on this computer">
-          🔍 Scan System Fonts
-        </button>
-        <button class="fm-import-btn" onclick="triggerFontImport()" title="Import .ttf/.otf/.woff/.woff2">
-          ⬆ Import Font File
-        </button>
+      <div id="fm-preview">The Lord is my shepherd</div>
+      <div class="fm-row">
+        <button class="fm-scan-btn" onclick="fmScanFonts()">🔍 Scan System Fonts</button>
+        <button class="fm-import-btn" onclick="triggerFontImport()">⬆ Import Font File</button>
       </div>
-
-      <!-- Status line -->
       <div id="fm-status"></div>
-
-      <!-- Imported font chips -->
       <div class="fm-label" style="margin-top:4px;">Imported</div>
-      <div class="fm-chip-row" id="fm-chips">
-        <span style="font-size:10px;color:var(--text-3);">No imported fonts yet.</span>
-      </div>
+      <div class="fm-chip-row" id="fm-chips"></div>
     `;
     accBody.appendChild(wrap);
 
-    _wireFmPreview();
-    _populateFontSelectors();
-    _renderImportedChips();
+    /* Preview updates on selection */
+    document.getElementById('fm-font-sel')?.addEventListener('change', e => {
+      const prev = document.getElementById('fm-preview');
+      if (prev) prev.style.fontFamily = `'${e.target.value}', serif`;
+    });
+
+    _populateSelectors();
+    _renderChips();
   }
-
-  window.fmScanFonts = async function () {
-    const statusEl = document.getElementById('fm-status');
-    if (statusEl) statusEl.textContent = 'Scanning system fonts…';
-    await detectSystemFonts();
-  };
-
-  /* Expose import trigger globally */
-  window.triggerFontImport = triggerFontImport;
 
 
   /* ══════════════════════════════════════════════════════════
      UTILITIES
   ══════════════════════════════════════════════════════════ */
-  function _slugify(s) {
-    return String(s).toLowerCase().replace(/[^a-z0-9]/g, '_');
-  }
-  function _esc(s) {
-    return String(s||'')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-      .replace(/'/g,'&#39;');
+  function _slug(s) { return String(s).toLowerCase().replace(/[^a-z0-9]/g,'_'); }
+  function _esc(s)  {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                        .replace(/>/g,'&gt;').replace(/'/g,'&#39;');
   }
 
 
@@ -697,26 +578,21 @@
      BOOT
   ══════════════════════════════════════════════════════════ */
   function boot() {
-    buildTimerSizeCtrl();
+    buildTimerSizeRow();
     buildFontManager();
     _mountImportedFonts();
 
-    /* Run canvas font detection silently in the background */
+    /* Silent background font scan */
     setTimeout(() => {
-      if (!_allFonts.length) {
-        _canvasDetect().then(fonts => {
-          _allFonts = [...new Set([
-            ...fonts,
-            ..._importedFonts.map(f => f.family)
-          ])].sort();
-          _populateFontSelectors();
-          const st = document.getElementById('fm-status');
-          if (st) st.textContent = `✓ ${_allFonts.length} fonts available`;
-        });
-      }
-    }, 1200);
+      if (!_allFonts.length) _canvasDetect(null).then(fonts => {
+        _allFonts = [...new Set([...fonts, ..._importedFonts.map(f => f.family)])].sort();
+        _populateSelectors();
+        const st = document.getElementById('fm-status');
+        if (st) st.textContent = `✓ ${_allFonts.length} fonts available`;
+      });
+    }, 1500);
 
-    console.info('[BW fix7] ✓ Auto-fit projection text  ✓ Timer font-size  ✓ Font manager');
+    console.info('[BW fix7 v2] ✓ Screen-fill text  ✓ Timer bold+size  ✓ Font manager');
   }
 
   if (document.readyState === 'loading') {
