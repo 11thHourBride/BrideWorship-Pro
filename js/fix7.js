@@ -1,12 +1,10 @@
 /* ═══════════════════════════════════════════════════════════
-   BrideWorship Pro — fix7.js  (v2)
-   Fix 1 : Projection text fills the screen like EasyWorship.
-           Size is calculated from screen dimensions and the
-           actual line/character count of each slide — always
-           large, always visible from a distance.
-   Fix 2 : Timer is bold. Users type an exact px size or use
-           −/+ to step it.
-   Fix 3 : System font detection + import font files.
+   BrideWorship Pro — fix7.js  (v3)
+   Fix 1 : Projection window uses a 1920×1080 virtual canvas
+           scaled to fill any screen — identical to output
+           preview behaviour. Text fills the slide area.
+   Fix 2 : Clock display: bold + custom font-size input.
+   Fix 3 : System + imported font manager in Text Style panel.
 ═══════════════════════════════════════════════════════════ */
 
 (function BW_Fix7() {
@@ -19,29 +17,23 @@
   _style.id = 'bw-fix7-styles';
   _style.textContent = `
 
-    /* ── Projection window — text fill behaviour ──────────── */
-    /* These rules are injected INTO the projection popup window
-       via projWindowHTML override — see below.               */
+    /* ── Clock: bold + custom size ────────────────────────── */
+    #out-clock { font-weight: 700 !important; }
 
-    /* ── Timer: bold + size controls ─────────────────────── */
-    #t-display {
-      font-weight: 700 !important;
-      transition: font-size .2s;
-    }
-
-    #timer-size-row {
+    #clock-size-row {
       display: flex;
       align-items: center;
-      gap: 7px;
-      margin-top: 10px;
+      gap: 6px;
+      margin-top: 6px;
+      flex-wrap: wrap;
     }
-    .tsz-label {
+    .cksz-label {
       font-size: 11px;
       color: var(--text-3);
       white-space: nowrap;
       flex-shrink: 0;
     }
-    .tsz-btn {
+    .cksz-btn {
       width: 26px; height: 26px;
       border: 1px solid var(--border-dim);
       border-radius: 4px;
@@ -52,27 +44,22 @@
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
       transition: background .1s;
-      line-height: 1;
       user-select: none;
     }
-    .tsz-btn:hover  { background: var(--bg-hover); }
-    .tsz-btn:active { opacity: .6; }
-    #tsz-inp {
-      width: 56px;
+    .cksz-btn:hover  { background: var(--bg-hover); }
+    .cksz-btn:active { opacity: .6; }
+    #cksz-inp {
+      width: 52px;
       text-align: center;
-      padding: 4px 6px;
+      padding: 4px 5px;
       font-size: 12px;
-      font-family: 'Lato', sans-serif;
       background: var(--bg-card);
       border: 1px solid var(--border-dim);
       border-radius: 4px;
       color: var(--text-1, #e0ddd8);
       flex-shrink: 0;
     }
-    #tsz-inp:focus {
-      outline: none;
-      border-color: var(--gold-dim);
-    }
+    #cksz-inp:focus { outline: none; border-color: var(--gold-dim); }
 
     /* ── Font manager ─────────────────────────────────────── */
     #font-manager-section {
@@ -95,51 +82,36 @@
       flex-wrap: wrap;
     }
     #fm-font-sel { flex: 1; min-width: 0; }
-
     .fm-apply-btn {
-      flex-shrink: 0;
       padding: 5px 10px;
       background: var(--gold, #c9a84c);
       border: none; border-radius: 4px;
       color: #000; font-size: 11px; font-weight: 700;
-      cursor: pointer; transition: opacity .15s;
+      cursor: pointer; flex-shrink: 0;
     }
     .fm-apply-btn:hover { opacity: .85; }
-
     .fm-scan-btn, .fm-import-btn {
-      flex-shrink: 0;
       padding: 5px 9px;
       background: var(--bg-card);
       border: 1px solid var(--border-dim);
       border-radius: 4px;
       color: var(--text-2); font-size: 11px;
-      cursor: pointer; white-space: nowrap;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0;
       transition: background .1s, border-color .15s;
     }
-    .fm-scan-btn:hover,
-    .fm-import-btn:hover {
-      background: var(--bg-hover);
-      border-color: var(--gold-dim);
-      color: var(--gold);
+    .fm-scan-btn:hover, .fm-import-btn:hover {
+      background: var(--bg-hover); border-color: var(--gold-dim); color: var(--gold);
     }
-
     #fm-preview {
       padding: 8px 10px;
       background: var(--bg-deep, #09090f);
       border: 1px solid var(--border-dim);
       border-radius: 5px;
-      font-size: 20px;
-      color: #f6f2ec;
-      text-align: center;
-      min-height: 44px;
-      transition: font-family .2s;
-      word-break: break-word;
+      font-size: 20px; color: #f6f2ec;
+      text-align: center; min-height: 44px;
+      transition: font-family .2s; word-break: break-word;
     }
-    #fm-status {
-      font-size: 10px;
-      color: var(--text-3);
-      min-height: 14px;
-    }
+    #fm-status { font-size: 10px; color: var(--text-3); min-height: 14px; }
     .fm-chip-row { display: flex; flex-wrap: wrap; gap: 4px; }
     .fm-chip {
       display: flex; align-items: center; gap: 5px;
@@ -150,10 +122,10 @@
       font-size: 10px; color: var(--text-2);
       cursor: pointer; transition: border-color .12s;
     }
-    .fm-chip:hover        { border-color: var(--gold-dim); }
+    .fm-chip:hover { border-color: var(--gold-dim); }
     .fm-chip-del {
       font-size: 10px; color: var(--text-3);
-      cursor: pointer; line-height: 1; padding: 0 2px;
+      cursor: pointer; padding: 0 2px;
     }
     .fm-chip-del:hover { color: var(--red, #e05050); }
   `;
@@ -161,178 +133,350 @@
 
 
   /* ══════════════════════════════════════════════════════════
-     FIX 1 — PROJECTION TEXT FILLS THE SCREEN
+     FIX 1 — PROJECTION WINDOW: VIRTUAL CANVAS SCALE
      ──────────────────────────────────────────────────────────
-     Formula (mirrors EasyWorship / ProPresenter):
-       1. Count logical lines (newline-split + word-wrap estimate)
-       2. fontSize = min(
-             availH / lines * LINE_FILL,   ← fill vertically
-             availW / maxCharsInLine * CHAR_W  ← don't overflow horizontally
-          )
-       3. Clamp to [MIN_PX, MAX_PX]
-     Result: short text → very large; long text → smaller but
-     always fills the slide area and stays fully readable.
+     Strategy: render slide content at a fixed 1920×1080
+     "virtual canvas" using the SAME font-size logic as the
+     output preview, then CSS-scale the entire canvas to fill
+     whatever physical screen the window is on.
+     This guarantees projection == output preview at any size.
   ══════════════════════════════════════════════════════════ */
 
-  const LINE_FILL = 0.80;   // fraction of a "line slot" the text occupies
-  const CHAR_W    = 0.60;   // average char width as fraction of font-size
-  const PAD_H     = 0.10;   // horizontal padding (each side, fraction of W)
-  const PAD_V     = 0.12;   // vertical padding (each side, fraction of H)
-  const REF_H_EST = 0.04;   // estimated reference-line height fraction of H
-  const FOOT_H_EST= 0.035;
-  const MIN_PX    = 28;     // absolute minimum — always readable from a distance
-  const MAX_PX    = 200;
+  /* Base virtual resolution — matches the output preview ratio */
+  const BASE_W = '1000'; // 1920;
+  const BASE_H = '900'; // 1080;
 
-  /**
-   * Calculate the ideal font size for the given text on a
-   * screen of (screenW × screenH) pixels.
+  /*
+   * Calc ideal font size for a given text on BASE_W × BASE_H.
+   * Uses the same proportional logic the output preview uses
+   * (which is why they match — both target the same virtual px).
    */
-  function calcFitSize(text, screenW, screenH) {
-    if (!text || !screenW || !screenH) return 60;
+  function calcVirtualFontSize(text) {
+    if (!text || !text.trim()) return 72;
 
-    const availW = screenW * (1 - PAD_H * 2);
-    const availH = screenH * (1 - PAD_V * 2)
-                 - screenH * REF_H_EST
-                 - screenH * FOOT_H_EST;
+    const PAD_X = BASE_W * 10.00;
+    const PAD_Y = BASE_H * 10.00;
+    const REF_H = BASE_H * 10.00; // ref line height
+    const FOOT  = BASE_H * 10.00;
+    const availW = BASE_W - PAD_X * 2;
+    const availH = BASE_H - PAD_Y * 2 - REF_H - FOOT;
 
-    /* Split into raw lines */
-    const rawLines = text.split('\n').filter(l => l.trim() !== '');
-    if (!rawLines.length) return MIN_PX;
+    const lines    = text.split('\n').filter(l => l.trim() !== '');
+    const maxLen   = Math.max(...lines.map(l => l.length), 1);
+    const lineCount = lines.length;
 
-    /* For each raw line, estimate how many display lines it wraps to
-       at a trial font size.  We start with a rough estimate then refine. */
-    function countDisplayLines(fz) {
-      const charsPerLine = availW / (fz * CHAR_W);
-      let total = 0;
-      rawLines.forEach(line => {
-        total += Math.max(1, Math.ceil(line.length / charsPerLine));
-      });
-      return total;
-    }
+    /* Size so all lines fill the available height */
+    const LINE_H_RATIO = 1.30;
+    const sizeByH = (availH / lineCount) / LINE_H_RATIO;
 
-    /* Find font size where all display lines fit vertically */
-    /* Start from a generous size and work down if needed */
-    let fz = Math.floor(availH / rawLines.length * LINE_FILL);
-    fz = Math.min(fz, MAX_PX);
-    fz = Math.max(fz, MIN_PX);
+    /* Size so the longest line fits the width (avg char ~0.52em) */
+    const CHAR_RATIO  = 0.52;
+    const sizeByW = availW / (maxLen * CHAR_RATIO);
 
-    /* Refine: if wrapped lines overflow, reduce */
-    for (let i = 0; i < 20; i++) {
-      const lines = countDisplayLines(fz);
-      const usedH = lines * (fz / LINE_FILL);
-      if (usedH <= availH || fz <= MIN_PX) break;
-      fz = Math.floor(fz * (availH / usedH) * 0.95);
-      fz = Math.max(fz, MIN_PX);
-    }
-
-    return Math.round(Math.max(MIN_PX, Math.min(MAX_PX, fz)));
+    const raw = Math.min(sizeByH, sizeByW);
+    return Math.round(Math.max(32, Math.min(180, raw)));
   }
 
-  /* Apply the calculated size to the projection window */
-  function applyFitToProj() {
-    const pw = S?.projWin;
-    if (!pw || pw.closed) return;
-    if (!S?.slides?.length) return;
+  /*
+   * Rebuild projWindowHTML to use the virtual-canvas approach.
+   * The entire #proj-canvas is rendered at 1920×1080 px then
+   * CSS-scaled to fill the actual window.
+   */
+  window.projWindowHTML = function () {
+    const curBg = (typeof BACKGROUNDS !== 'undefined')
+      ? (BACKGROUNDS.find(b => b.id === S.bgId) || BACKGROUNDS[0])
+      : { bg: '#08051a' };
 
-    const d   = pw.document;
-    const txt = d.getElementById('proj-text');
-    if (!txt) return;
+    return `<!DOCTYPE html><html><head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  width: 100vw; height: 100vh;
+  overflow: hidden; background: #000;
+}
 
-    /* Don't resize during timer projection */
-    if (S?.timer?.projected && S?.timer?.running) return;
+/* ── Virtual canvas: always 1920×1080, scaled to fill ── */
+#proj-canvas {
+  position: fixed;
+  width:  ${BASE_W}px;
+  height: ${BASE_H}px;
+  top: 0; left: 0;
+  transform-origin: top left;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
 
-    const W  = pw.innerWidth  || 1920;
-    const H  = pw.innerHeight || 1080;
-    const sl = S.slides[S.cur] || {};
-    const fz = calcFitSize(sl.text || '', W, H);
+/* Background */
+#proj-bg {
+  position: absolute;
+  inset: 0;
+  background: ${curBg.bg};
+  transition: background .5s;
+}
 
-    txt.style.fontSize   = fz + 'px';
-    txt.style.lineHeight = '1.25';
-    txt.style.width      = '100%';
+/* All text lives here — centered vertically */
+#proj-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: ${Math.round(BASE_H*0.10)}px ${Math.round(BASE_W*0.08)}px;
+  z-index: 2;
+  width: 100%;
+}
 
-    /* Keep local sz-val label in sync — informational only */
-    const szVal = document.getElementById('sz-val');
-    if (szVal) szVal.textContent = fz;
+#proj-ref {
+  font-family: 'Cinzel', serif;
+  font-size: ${Math.round(BASE_H*0.022)}px;
+  letter-spacing: 0.38em;
+  color: rgba(201,168,76,.8);
+  text-transform: uppercase;
+  margin-bottom: ${Math.round(BASE_H*0.022)}px;
+  width: 100%;
+  text-align: center;
+}
+
+#proj-text {
+  width: 100%;
+  line-height: 1.30;
+  text-shadow: 0 2px ${Math.round(BASE_H*0.028)}px rgba(0,0,0,.95);
+  text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  transition: font-size .18s ease, color .2s;
+}
+
+#proj-footer {
+  position: absolute;
+  bottom: ${Math.round(BASE_H*0.025)}px;
+  left: 0; right: 0;
+  text-align: center;
+  font-family: 'Cinzel', serif;
+  font-size: ${Math.round(BASE_H*0.016)}px;
+  letter-spacing: 0.26em;
+  color: rgba(255,255,255,.28);
+  text-transform: uppercase;
+  z-index: 3;
+}
+
+#proj-lt {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: ${Math.round(BASE_H*0.018)}px ${Math.round(BASE_W*0.03)}px;
+  display: none; text-align: center;
+  font-size: ${Math.round(BASE_H*0.032)}px;
+  font-weight: 700; letter-spacing: .08em;
+  color: #fff; z-index: 10;
+}
+#proj-lt.visible   { display: block; }
+#proj-lt.lt-default{ background: rgba(8,5,26,.88); border-top:1px solid rgba(201,168,76,.3); }
+#proj-lt.lt-gold   { background: linear-gradient(90deg,#8a5a00,#c9a84c,#8a5a00); }
+#proj-lt.lt-dark   { background: rgba(0,0,0,.95); border-top:2px solid rgba(255,255,255,.18); }
+#proj-lt.lt-alert  { background: rgba(140,0,0,.9); border-top:2px solid #e05050; }
+
+#proj-blank {
+  position: fixed; inset: 0;
+  background: #000; display: none; z-index: 99;
+}
+
+/* Transition animations */
+@keyframes fadeIn  { from{opacity:0}           to{opacity:1} }
+@keyframes slideIn { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:none} }
+@keyframes zoomIn  { from{opacity:0;transform:scale(.93)}       to{opacity:1;transform:scale(1)} }
+.trans-fade  #proj-inner { animation: fadeIn  var(--ts,.5s) ease; }
+.trans-slide #proj-inner { animation: slideIn var(--ts,.5s) ease; }
+.trans-zoom  #proj-inner { animation: zoomIn  var(--ts,.5s) ease; }
+</style>
+</head><body>
+<div id="proj-canvas">
+  <div id="proj-bg"></div>
+  <div id="proj-inner">
+    <div id="proj-ref"></div>
+    <div id="proj-text"></div>
+  </div>
+  <div id="proj-footer"></div>
+  <div id="proj-lt"></div>
+</div>
+<div id="proj-blank"></div>
+<script>
+  /* Scale the virtual canvas to fill the actual window */
+  function scaleCanvas() {
+    var c  = document.getElementById('proj-canvas');
+    if (!c) return;
+    var sx = window.innerWidth  / ${BASE_W};
+    var sy = window.innerHeight / ${BASE_H};
+    /* Use the smaller scale to keep aspect ratio, fill with the larger */
+    var s  = Math.max(sx, sy);
+    var tx = (window.innerWidth  - ${BASE_W} * s) / 2;
+    var ty = (window.innerHeight - ${BASE_H} * s) / 2;
+    c.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + s + ')';
   }
+  scaleCanvas();
+  window.addEventListener('resize', scaleCanvas);
+  document.addEventListener('fullscreenchange', function(){ setTimeout(scaleCanvas,80); });
+<\/script>
+</body></html>`;
+  };
 
-  /* Patch push() */
+  /* ── Override push() to set virtual-px font sizes ── */
   const _origPush = window.push;
   window.push = function () {
     if (_origPush) _origPush();
-    requestAnimationFrame(() => setTimeout(applyFitToProj, 30));
+    _pushFitText();
   };
 
-  /* Re-fit on projection window resize / fullscreen */
+  function _pushFitText() {
+    const pw = S?.projWin;
+    if (!pw || pw.closed) return;
+    if (!S?.slides?.length) return;
+    if (S?.timer?.projected && S?.timer?.running) return;
+
+    const sl  = S.slides[S.cur] || {};
+    const fz  = calcVirtualFontSize(sl.text || '');
+    const d   = pw.document;
+    const txt = d.getElementById('proj-text');
+    const f   = S.format || {};
+    if (!txt) return;
+
+    txt.style.fontSize   = fz + 'px';
+    txt.style.lineHeight = '1.30';
+    txt.style.fontFamily = `'${f.font || 'Playfair Display'}', serif`;
+    txt.style.textAlign  = f.align  || 'center';
+    txt.style.fontWeight = f.bold   ? '700' : '400';
+    txt.style.fontStyle  = f.italic ? 'italic' : 'normal';
+    txt.style.color      = f.color  || '#f6f2ec';
+    txt.style.textShadow = _shadow(f.shadow, f.color);
+
+    /* Keep local size indicator in sync */
+    const szVal = document.getElementById('sz-val');
+    if (szVal) szVal.textContent = fz;
+    S.fontSize = fz;
+  }
+
+  /* Refit after open + resize */
   const _origOpenProj = window.openProjection;
   window.openProjection = async function () {
     if (_origOpenProj) await _origOpenProj();
     setTimeout(() => {
       const pw = S?.projWin;
       if (!pw || pw.closed) return;
-      pw.addEventListener('resize',           () => setTimeout(applyFitToProj, 80), {passive:true});
-      pw.document.addEventListener('fullscreenchange', () => setTimeout(applyFitToProj, 120));
-      setTimeout(applyFitToProj, 500);
+      pw.addEventListener('resize', () => { _pushFitText(); pw.scaleCanvas?.(); }, {passive:true});
+      pw.document.addEventListener('fullscreenchange', () => setTimeout(_pushFitText, 120));
+      setTimeout(_pushFitText, 500);
     }, 900);
   };
 
-  window.applyFitToProj = applyFitToProj;
+  function _shadow(key, color) {
+    const c = color || '#f6f2ec';
+    return ({
+      none:    'none',
+      soft:    `0 2px 30px rgba(0,0,0,.95)`,
+      hard:    `2px 2px 0 rgba(0,0,0,.9)`,
+      glow:    `0 0 30px ${c}88, 0 2px 20px rgba(0,0,0,.8)`,
+      outline: `-1px -1px 0 #000,1px -1px 0 #000,-1px 1px 0 #000,1px 1px 0 #000`,
+    })[key] || '0 2px 30px rgba(0,0,0,.95)';
+  }
 
 
   /* ══════════════════════════════════════════════════════════
-     FIX 2 — TIMER: BOLD + CUSTOM SIZE INPUT
+     FIX 2 — CLOCK: BOLD + CUSTOM SIZE INPUT
   ══════════════════════════════════════════════════════════ */
 
-  let _timerPx = parseInt(localStorage.getItem('bw_timer_font') || '96');
+  let _clockPx = parseInt(localStorage.getItem('bw_clock_px') || '14');
 
-  function buildTimerSizeRow() {
-    if (document.getElementById('timer-size-row')) return;
-    const disp = document.getElementById('t-display');
-    if (!disp) return;
+  function buildClockSizeRow() {
+    if (document.getElementById('clock-size-row')) return;
+
+    /* Find the clock settings panel */
+    const panel = document.getElementById('clock-settings-panel');
+    if (!panel) return;
 
     const row = document.createElement('div');
-    row.id = 'timer-size-row';
+    row.id = 'clock-size-row';
     row.innerHTML = `
-      <span class="tsz-label">Timer Size</span>
-      <button class="tsz-btn" onclick="tszStep(-8)" title="Decrease">−</button>
-      <input  id="tsz-inp" type="number" min="24" max="480"
-              value="${_timerPx}"
-              onchange="tszSet(parseInt(this.value))"
-              onkeydown="if(event.key==='Enter')tszSet(parseInt(this.value))">
-      <span class="tsz-label">px</span>
-      <button class="tsz-btn" onclick="tszStep(+8)" title="Increase">+</button>
+      <span class="cksz-label">Clock Size</span>
+      <button class="cksz-btn" onclick="ckszStep(-1)" title="Smaller">−</button>
+      <input id="cksz-inp" type="number" min="8" max="120"
+             value="${_clockPx}"
+             onchange="ckszSet(parseInt(this.value))"
+             onkeydown="if(event.key==='Enter')ckszSet(parseInt(this.value))">
+      <span class="cksz-label">px</span>
+      <button class="cksz-btn" onclick="ckszStep(+1)" title="Larger">+</button>
     `;
-    disp.insertAdjacentElement('afterend', row);
-    _applyTimerPx();
+    panel.appendChild(row);
+    _applyClockPx();
   }
 
-  window.tszStep = function (d) {
-    tszSet(_timerPx + d);
-  };
-  window.tszSet  = function (v) {
+  window.ckszStep = function (d) { ckszSet(_clockPx + d); };
+  window.ckszSet  = function (v) {
     if (!v || isNaN(v)) return;
-    _timerPx = Math.max(24, Math.min(480, v));
-    const inp = document.getElementById('tsz-inp');
-    if (inp) inp.value = _timerPx;
-    _applyTimerPx();
-    localStorage.setItem('bw_timer_font', String(_timerPx));
+    _clockPx = Math.max(8, Math.min(120, v));
+    const inp = document.getElementById('cksz-inp');
+    if (inp) inp.value = _clockPx;
+    /* Also sync the existing clock-size select — set to closest */
+    const sel = document.getElementById('clock-size');
+    if (sel) sel.value = _clockPx + 'px';
+    _applyClockPx();
+    localStorage.setItem('bw_clock_px', String(_clockPx));
+    /* Trigger existing clock settings update */
+    if (typeof updateClockSettings === 'function') updateClockSettings();
   };
 
-  function _applyTimerPx() {
-    const disp = document.getElementById('t-display');
-    if (disp) { disp.style.fontSize = _timerPx + 'px'; disp.style.fontWeight = '700'; }
-
-    /* Projection window timer */
-    const pw = S?.projWin;
-    if (pw && !pw.closed && S?.timer?.projected) {
-      const el = pw.document.getElementById('proj-text');
-      if (el) el.style.fontSize = _timerPx + 'px';
+  function _applyClockPx() {
+    /* Override the clock-size select value so tickClock() picks it up */
+    const sel = document.getElementById('clock-size');
+    if (sel) {
+      /* inject a matching option if not present */
+      let found = Array.from(sel.options).find(o => o.value === _clockPx + 'px');
+      if (!found) {
+        const opt = document.createElement('option');
+        opt.value = _clockPx + 'px';
+        opt.textContent = _clockPx + 'px';
+        opt.dataset.custom = '1';
+        sel.appendChild(opt);
+      }
+      sel.value = _clockPx + 'px';
     }
-    /* Stage */
+
+    /* Apply bold + size to the local output-preview clock */
+    const ck = document.getElementById('out-clock');
+    if (ck) {
+      ck.style.fontSize   = _clockPx + 'px';
+      ck.style.fontWeight = '700';
+    }
+
+    /* Apply to projection window clock */
+    const pw = S?.projWin;
+    if (pw && !pw.closed) {
+      const pc = pw.document.getElementById('proj-clock');
+      if (pc) {
+        pc.style.fontSize   = Math.round(_clockPx * 1.8) + 'px';
+        pc.style.fontWeight = '700';
+      }
+    }
+
+    /* Apply to stage display clock */
     const sw = S?.stageWin;
     if (sw && !sw.closed) {
-      const el = sw.document.getElementById('stg-timer');
-      if (el) { el.style.fontSize = Math.round(_timerPx * 0.42) + 'px'; el.style.fontWeight = '700'; }
+      const sc = sw.document.getElementById('stg-clock');
+      if (sc) { sc.style.fontSize = _clockPx + 'px'; sc.style.fontWeight = '700'; }
     }
+  }
+
+  /* Patch tickClock (from BrideWorship.js) to apply bold after each tick */
+  const _origTickClock = window.tickClock;
+  if (typeof _origTickClock === 'function') {
+    window.tickClock = function () {
+      _origTickClock();
+      /* Reapply bold + custom size after the original sets font-size */
+      const ck = document.getElementById('out-clock');
+      if (ck) { ck.style.fontSize = _clockPx + 'px'; ck.style.fontWeight = '700'; }
+    };
   }
 
 
@@ -340,29 +484,30 @@
      FIX 3 — SYSTEM + IMPORTED FONT MANAGER
   ══════════════════════════════════════════════════════════ */
 
-  const COMMON_SYSTEM_FONTS = [
+  const COMMON_FONTS = [
     'Georgia','Palatino Linotype','Book Antiqua','Times New Roman',
-    'Garamond','Cambria','Constantia','Rockwell','Bodoni MT','Baskerville',
+    'Garamond','Cambria','Constantia','Rockwell','Baskerville',
     'Hoefler Text','Perpetua','Didot','Copperplate',
     'Arial','Arial Black','Helvetica','Helvetica Neue','Verdana','Tahoma',
     'Trebuchet MS','Geneva','Calibri','Candara','Corbel','Segoe UI',
     'Franklin Gothic Medium','Gill Sans','Impact','Optima','Myriad Pro',
     'Lucida Sans','Futura','Avenir','Avenir Next',
     'Courier New','Consolas','Lucida Console','Monaco','Menlo',
-    'Brush Script MT','Copperplate Gothic','Papyrus','Broadway',
+    'Brush Script MT','Papyrus','Broadway',
     'Segoe Print','Segoe Script','Vladimir Script',
     'Playfair Display','Cinzel','Lato',
   ].sort();
 
-  let _importedFonts = JSON.parse(localStorage.getItem('bw_imported_fonts') || '[]');
-  let _allFonts      = [];
+  let _imported = JSON.parse(localStorage.getItem('bw_imported_fonts') || '[]');
+  let _allFonts = [];
 
-  function _mountImportedFonts() {
-    _importedFonts.forEach(f => {
+  (function _mountImported() {
+    _imported.forEach(f => {
       if (!document.getElementById('ff-' + _slug(f.family)))
         _injectFF(f.family, f.url);
     });
-  }
+  })();
+
   function _injectFF(family, url) {
     const s = document.createElement('style');
     s.id = 'ff-' + _slug(family);
@@ -370,78 +515,57 @@
     document.head.appendChild(s);
   }
 
-  async function _detectFonts() {
+  async function _scanFonts() {
     const st = document.getElementById('fm-status');
     if (st) st.textContent = 'Scanning…';
-    let detected = [];
-
+    let found = [];
     if ('queryLocalFonts' in window) {
       try {
         const fonts = await window.queryLocalFonts();
-        detected = [...new Set(fonts.map(f => f.family))].sort();
-        if (st) st.textContent = `✓ ${detected.length} system fonts found`;
-      } catch(e) {
-        detected = await _canvasDetect(st);
-      }
+        found = [...new Set(fonts.map(f => f.family))].sort();
+        if (st) st.textContent = `✓ ${found.length} system fonts found`;
+      } catch(e) { found = await _canvasScan(st); }
     } else {
-      detected = await _canvasDetect(st);
+      found = await _canvasScan(st);
     }
-
-    _allFonts = [...new Set([
-      ...detected,
-      ..._importedFonts.map(f => f.family)
-    ])].sort();
-    _populateSelectors();
-    return _allFonts;
+    _allFonts = [...new Set([...found, ..._imported.map(f => f.family)])].sort();
+    _fillSelectors();
   }
 
-  async function _canvasDetect(st) {
-    const canvas = document.createElement('canvas');
-    canvas.width = 200; canvas.height = 50;
-    const ctx  = canvas.getContext('2d');
-    const base = (function() {
-      ctx.font = "36px '__x999'";
-      return ctx.measureText('mmmmmmmmmmlli').width;
-    })();
-    const found = [];
-    for (let i = 0; i < COMMON_SYSTEM_FONTS.length; i++) {
-      ctx.font = `36px '${COMMON_SYSTEM_FONTS[i]}', serif`;
-      if (ctx.measureText('mmmmmmmmmmlli').width !== base)
-        found.push(COMMON_SYSTEM_FONTS[i]);
+  async function _canvasScan(st) {
+    const c = document.createElement('canvas');
+    c.width = 200; c.height = 50;
+    const ctx  = c.getContext('2d');
+    ctx.font   = "36px '__none__'";
+    const base = ctx.measureText('mmmmmmmmmmlli').width;
+    const out  = [];
+    for (let i = 0; i < COMMON_FONTS.length; i++) {
+      ctx.font = `36px '${COMMON_FONTS[i]}', serif`;
+      if (ctx.measureText('mmmmmmmmmmlli').width !== base) out.push(COMMON_FONTS[i]);
       if (i % 15 === 0) await new Promise(r => setTimeout(r, 0));
     }
-    if (st) st.textContent = `✓ ${found.length} fonts detected`;
-    return found;
+    if (st) st.textContent = `✓ ${out.length} fonts detected`;
+    return out;
   }
 
-  function _populateSelectors() {
-    const imported = _importedFonts.map(f => f.family);
-    ['#font-sel','#tmpl-font','#fm-font-sel'].forEach(sel => {
-      const el = document.querySelector(sel);
+  function _fillSelectors() {
+    const importedNames = _imported.map(f => f.family);
+    ['#font-sel','#tmpl-font','#fm-font-sel'].forEach(qs => {
+      const el = document.querySelector(qs);
       if (!el) return;
       const cur = el.value;
-      /* Remove previously injected dynamic options */
       Array.from(el.querySelectorAll('optgroup[data-dyn]')).forEach(g => g.remove());
-
-      if (imported.length) {
+      if (importedNames.length) {
         const g = document.createElement('optgroup');
-        g.label = '── Imported ──';
-        g.dataset.dyn = '1';
-        imported.forEach(n => {
-          const o = document.createElement('option');
-          o.value = n; o.textContent = n;
-          g.appendChild(o);
-        });
+        g.label = '── Imported Fonts ──'; g.dataset.dyn = '1';
+        importedNames.forEach(n => { const o=document.createElement('option'); o.value=n; o.textContent=n; g.appendChild(o); });
         el.appendChild(g);
       }
       if (_allFonts.length) {
         const g = document.createElement('optgroup');
-        g.label = '── System ──';
-        g.dataset.dyn = '1';
-        _allFonts.filter(n => !imported.includes(n)).forEach(n => {
-          const o = document.createElement('option');
-          o.value = n; o.textContent = n;
-          g.appendChild(o);
+        g.label = '── System Fonts ──'; g.dataset.dyn = '1';
+        _allFonts.filter(n => !importedNames.includes(n)).forEach(n => {
+          const o=document.createElement('option'); o.value=n; o.textContent=n; g.appendChild(o);
         });
         el.appendChild(g);
       }
@@ -453,21 +577,18 @@
   function _renderChips() {
     const row = document.getElementById('fm-chips');
     if (!row) return;
-    if (!_importedFonts.length) {
-      row.innerHTML = '<span style="font-size:10px;color:var(--text-3);">No imported fonts yet.</span>';
-      return;
-    }
-    row.innerHTML = _importedFonts.map((f, i) => `
-      <div class="fm-chip" onclick="fmApply('${_esc(f.family)}')">
-        <span style="font-family:'${_esc(f.family)}',serif;">${_esc(f.family)}</span>
-        <span class="fm-chip-del" onclick="event.stopPropagation();fmRemove(${i})">✕</span>
-      </div>`).join('');
+    row.innerHTML = _imported.length
+      ? _imported.map((f,i) => `
+          <div class="fm-chip" onclick="fmApply('${_esc(f.family)}')">
+            <span style="font-family:'${_esc(f.family)}',serif;">${_esc(f.family)}</span>
+            <span class="fm-chip-del" onclick="event.stopPropagation();fmRemove(${i})">✕</span>
+          </div>`).join('')
+      : '<span style="font-size:10px;color:var(--text-3);">No imported fonts yet.</span>';
   }
 
   window.fmApply = function (family) {
-    ['#font-sel','#tmpl-font','#fm-font-sel'].forEach(sel => {
-      const el = document.querySelector(sel);
-      if (el) el.value = family;
+    ['#font-sel','#tmpl-font','#fm-font-sel'].forEach(qs => {
+      const el = document.querySelector(qs); if (el) el.value = family;
     });
     S.format.font = family;
     const el = document.getElementById('s-text');
@@ -479,52 +600,47 @@
   };
 
   window.fmRemove = function (i) {
-    const f = _importedFonts[i];
-    if (!f) return;
+    const f = _imported[i]; if (!f) return;
     document.getElementById('ff-' + _slug(f.family))?.remove();
-    _importedFonts.splice(i, 1);
+    _imported.splice(i, 1);
     _allFonts = _allFonts.filter(n => n !== f.family);
-    try { localStorage.setItem('bw_imported_fonts', JSON.stringify(_importedFonts)); } catch(e) {}
-    _populateSelectors();
+    try { localStorage.setItem('bw_imported_fonts', JSON.stringify(_imported)); } catch(e) {}
+    _fillSelectors();
   };
 
-  window.fmScanFonts = async function () { await _detectFonts(); };
+  window.fmScanFonts = function () { _scanFonts(); };
 
   window.triggerFontImport = function () {
     const inp = document.createElement('input');
     inp.type = 'file'; inp.accept = '.ttf,.otf,.woff,.woff2'; inp.multiple = true;
     inp.style.display = 'none';
     inp.addEventListener('change', e => {
-      const files = Array.from(e.target.files || []);
-      if (!files.length) return;
+      const files = Array.from(e.target.files||[]); if (!files.length) return;
       const st = document.getElementById('fm-status');
       let done = 0;
       files.forEach(file => {
         const reader = new FileReader();
         reader.onload = ev => {
           const url    = ev.target.result;
-          const family = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
-                           .replace(/\b\w/g, c => c.toUpperCase());
-          if (!_importedFonts.some(f => f.family === family)) {
+          const family = file.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+          if (!_imported.some(f=>f.family===family)) {
             _injectFF(family, url);
-            _importedFonts.push({ family, url });
-            if (_importedFonts.length > 20) _importedFonts.shift();
+            _imported.push({family, url});
+            if (_imported.length > 20) _imported.shift();
             if (!_allFonts.includes(family)) _allFonts.unshift(family);
-            try { localStorage.setItem('bw_imported_fonts', JSON.stringify(_importedFonts)); } catch(e) {}
+            try { localStorage.setItem('bw_imported_fonts', JSON.stringify(_imported)); } catch(e) {}
           }
           done++;
           if (done === files.length) {
-            _populateSelectors();
+            _fillSelectors();
             if (st) st.textContent = `✓ ${files.length} font${files.length>1?'s':''} imported`;
-            if (typeof showSchToast === 'function')
-              showSchToast(`✓ Font imported: ${family}`);
+            if (typeof showSchToast === 'function') showSchToast(`✓ Font imported: ${family}`);
           }
         };
         reader.readAsDataURL(file);
       });
     });
-    document.body.appendChild(inp);
-    inp.click();
+    document.body.appendChild(inp); inp.click();
     setTimeout(() => inp.remove(), 15000);
   };
 
@@ -535,7 +651,6 @@
     if (!accHead) return;
     const accBody = accHead.nextElementSibling;
     if (!accBody) return;
-
     const wrap = document.createElement('div');
     wrap.id = 'font-manager-section';
     wrap.innerHTML = `
@@ -547,22 +662,18 @@
       <div id="fm-preview">The Lord is my shepherd</div>
       <div class="fm-row">
         <button class="fm-scan-btn" onclick="fmScanFonts()">🔍 Scan System Fonts</button>
-        <button class="fm-import-btn" onclick="triggerFontImport()">⬆ Import Font File</button>
+        <button class="fm-import-btn" onclick="triggerFontImport()">⬆ Import Font</button>
       </div>
       <div id="fm-status"></div>
       <div class="fm-label" style="margin-top:4px;">Imported</div>
       <div class="fm-chip-row" id="fm-chips"></div>
     `;
     accBody.appendChild(wrap);
-
-    /* Preview updates on selection */
     document.getElementById('fm-font-sel')?.addEventListener('change', e => {
       const prev = document.getElementById('fm-preview');
       if (prev) prev.style.fontFamily = `'${e.target.value}', serif`;
     });
-
-    _populateSelectors();
-    _renderChips();
+    _fillSelectors(); _renderChips();
   }
 
 
@@ -580,21 +691,24 @@
      BOOT
   ══════════════════════════════════════════════════════════ */
   function boot() {
-    buildTimerSizeRow();
+    buildClockSizeRow();
     buildFontManager();
-    _mountImportedFonts();
+
+    /* Restore persisted clock size */
+    const savedPx = parseInt(localStorage.getItem('bw_clock_px') || '0');
+    if (savedPx) { _clockPx = savedPx; _applyClockPx(); }
 
     /* Silent background font scan */
     setTimeout(() => {
-      if (!_allFonts.length) _canvasDetect(null).then(fonts => {
-        _allFonts = [...new Set([...fonts, ..._importedFonts.map(f => f.family)])].sort();
-        _populateSelectors();
+      if (!_allFonts.length) _canvasScan(null).then(fonts => {
+        _allFonts = [...new Set([...fonts, ..._imported.map(f=>f.family)])].sort();
+        _fillSelectors();
         const st = document.getElementById('fm-status');
         if (st) st.textContent = `✓ ${_allFonts.length} fonts available`;
       });
     }, 1500);
 
-    console.info('[BW fix7 v2] ✓ Screen-fill text  ✓ Timer bold+size  ✓ Font manager');
+    console.info('[BW fix7 v3] ✓ Virtual-canvas projection  ✓ Clock bold+size  ✓ Font manager');
   }
 
   if (document.readyState === 'loading') {
