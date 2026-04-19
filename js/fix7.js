@@ -143,8 +143,8 @@
   ══════════════════════════════════════════════════════════ */
 
   /* Base virtual resolution — matches the output preview ratio */
-  const BASE_W = '1000'; // 1920;
-  const BASE_H = '900'; // 1080;
+  const BASE_W = '1920'; // 1920;
+  const BASE_H = '1080'; // 1080;
 
   /*
    * Calc ideal font size for a given text on BASE_W × BASE_H.
@@ -174,7 +174,7 @@
     const sizeByW = availW / (maxLen * CHAR_RATIO);
 
     const raw = Math.min(sizeByH, sizeByW);
-    return Math.round(Math.max(32, Math.min(180, raw)));
+    return Math.round(Math.max(62, Math.min(180, raw)));
   }
 
   /*
