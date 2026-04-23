@@ -1,0 +1,182 @@
+/* ══════════════════════════════════════════════
+   THE TABLE — Integration styles
+══════════════════════════════════════════════ */
+
+.table-btn {
+  border-color: rgba(201,168,76,.35) !important;
+  color: var(--gold) !important;
+}
+.table-btn:hover {
+  background: rgba(201,168,76,.08) !important;
+  border-color: var(--gold) !important;
+}
+
+.table-modal-box {
+  width: 820px; max-width: 97vw; max-height: 92vh;
+  display: flex; flex-direction: column;
+}
+
+.table-panel {
+  display: flex; flex-direction: column; flex: 1; overflow: hidden;
+}
+
+.table-toolbar {
+  display: flex; gap: 5px; padding: 7px 12px;
+  border-bottom: 1px solid var(--border-dim);
+  background: #0b0b14; flex-shrink: 0;
+}
+
+.table-frame-wrap {
+  flex: 1; position: relative; overflow: hidden; min-height: 380px;
+}
+
+#table-iframe {
+  width: 100%; height: 100%; border: none;
+  display: block; background: #fff;
+}
+
+.table-iframe-fallback {
+  display: none;
+  position: absolute; inset: 0;
+  flex-direction: column; align-items: center; justify-content: center;
+  padding: 30px 40px; text-align: center; background: var(--bg-deep);
+}
+/* Show fallback when iframe errors — toggled by JS */
+.table-iframe-fallback.visible { display: flex; }
+
+.tf-icon  { font-size: 44px; margin-bottom: 12px; opacity: .5; }
+.tf-title { font-family: 'Cinzel', serif; font-size: 16px; color: var(--gold); margin-bottom: 8px; }
+.tf-sub   { font-size: 12px; color: var(--text-3); max-width: 420px; line-height: 1.7; }
+
+/* Download hero */
+.table-download-hero {
+  background: radial-gradient(ellipse at 28% 28%, #1c0f38 0%, #08051a 55%, #020208 100%);
+  border-radius: 6px; padding: 30px 20px; text-align: center;
+  border: 1px solid var(--border); margin-bottom: 20px;
+}
+.tdh-icon  { font-size: 48px; margin-bottom: 10px; }
+.tdh-title { font-family: 'Cinzel', serif; font-size: 20px; color: var(--gold); letter-spacing: 3px; }
+.tdh-sub   { font-size: 12px; color: var(--text-3); margin-top: 6px; max-width: 400px; margin-inline: auto; line-height: 1.7; }
+
+/* Steps */
+.table-steps { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.ts-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 9px 12px; background: var(--bg-card);
+  border: 1px solid var(--border-dim); border-radius: 5px;
+}
+.ts-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--gold-dim); color: #fff;
+  font-family: 'Cinzel', serif; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.ts-text { font-size: 12px; color: var(--text-2); line-height: 1.65; }
+.ts-text strong { color: var(--text-1); }
+
+/* ══════════════════════════════════════════════
+   THE TABLE — In-app downloader styles
+══════════════════════════════════════════════ */
+
+/* Progress bar */
+.td-prog-bar-track {
+  width: 100%; height: 10px;
+  background: var(--bg-hover);
+  border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--border-dim);
+}
+.td-prog-bar-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  border-radius: 10px;
+  transition: width .3s ease;
+}
+.td-prog-label {
+  font-size: 11px; color: var(--text-3);
+  text-align: center; margin-top: 6px;
+  font-family: 'Cinzel', serif; letter-spacing: 1px;
+}
+
+/* Alt platform pills */
+.td-platform-pill {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  color: var(--text-3); padding: 5px 12px;
+  border-radius: 20px; cursor: pointer;
+  font-size: 11px; font-family: 'Lato', sans-serif;
+  transition: all .18s;
+}
+.td-platform-pill:hover {
+  border-color: var(--gold-dim); color: var(--gold-light);
+}
+
+/* Built-in reader results */
+.reader-result-item {
+  padding: 8px 11px;
+  border-bottom: 1px solid var(--border-dim);
+  cursor: pointer; transition: background .15s;
+}
+.reader-result-item:last-child { border-bottom: none; }
+.reader-result-item:hover { background: var(--bg-hover); }
+.rri-title {
+  font-size: 27px; font-weight: 700; color: var(--text-1);
+}
+.rri-meta {
+  font-size: 30px; color: var(--text-3); margin-top: 2px;
+}
+/* ══════════════════════════════════════════════
+   THE TABLE — Add to Queue action bar
+══════════════════════════════════════════════ */
+
+.queue-action-bar {
+  display: flex; gap: 7px; margin-bottom: 8px; flex-wrap: wrap;
+}
+
+.queue-action-btn {
+  flex: 1; min-width: 120px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 2px; padding: 11px 8px;
+  border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--border-dim);
+  background: var(--bg-card);
+  transition: all .18s; text-align: center;
+  font-family: 'Lato', sans-serif;
+}
+.queue-action-btn:hover { transform: translateY(-1px); }
+
+.queue-project-btn {
+  background: var(--green);
+  border-color: var(--green);
+}
+.queue-project-btn:hover { background: #5dc98a; border-color: #5dc98a; }
+
+.queue-so-btn {
+  background: var(--bg-active);
+  border-color: var(--gold-dim);
+}
+.queue-so-btn:hover { background: var(--bg-hover); border-color: var(--gold); }
+
+.queue-clear-btn {
+  background: var(--bg-card);
+  border-color: rgba(224,80,80,.3);
+  max-width: 90px; flex: 0 0 90px;
+}
+.queue-clear-btn:hover { background: rgba(224,80,80,.08); border-color: var(--red); }
+
+.qab-icon {
+  font-size: 18px; line-height: 1;
+}
+.qab-label {
+  font-size: 12px; font-weight: 700;
+  color: var(--text-1); letter-spacing: .3px;
+}
+.queue-project-btn .qab-label,
+.queue-project-btn .qab-sub { color: #fff; }
+
+.qab-sub {
+  font-size: 9px; color: var(--text-3);
+  letter-spacing: .5px;
+}
+.queue-clear-btn .qab-label { color: var(--red); font-size: 11px; }
+.queue-clear-btn .qab-sub   { color: rgba(224,80,80,.5); }

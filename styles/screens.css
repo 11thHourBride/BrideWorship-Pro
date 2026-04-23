@@ -1,0 +1,269 @@
+/* ══════════════════════════════════════════════
+   RESPONSIVE LAYOUT — all screen sizes
+══════════════════════════════════════════════ */
+
+/* ── Base: ensure the app fills the screen and scrolls if needed ── */
+html, body {
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+}
+
+.app {
+  display: grid;
+  grid-template-rows: 50px 1fr 48px;
+  grid-template-columns: 268px 1fr 300px;
+  height: 100vh;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ── Topbar wraps and scrolls horizontally on small screens ── */
+.topbar {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  flex-wrap: nowrap;
+  gap: 5px;
+  padding: 0 8px;
+}
+.topbar::-webkit-scrollbar { display: none; }
+.topbar .tab-btn  { font-size: 10px; padding: 4px 7px; white-space: nowrap; }
+.topbar .proj-btn { font-size: 10px; padding: 4px 7px; white-space: nowrap; }
+.topbar .go-btn   { padding: 5px 12px; font-size: 10px; }
+
+/* ── Bottom bar scrolls horizontally ── */
+.bottom {
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  flex-wrap: nowrap;
+  gap: 5px;
+  padding: 0 8px;
+}
+.bottom::-webkit-scrollbar { display: none; }
+
+/* ── Library aside ── */
+.library {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ── Center ── */
+.center {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ── Right aside ── */
+.right {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* ════════════════════════
+   BREAKPOINTS
+════════════════════════ */
+
+/* ── Large desktop (1400px+): three columns, no change ── */
+@media (min-width: 1400px) {
+  .app {
+    grid-template-columns: 280px 1fr 320px;
+  }
+}
+
+/* ── Medium desktop (1100–1399px): slightly narrower panels ── */
+@media (max-width: 1399px) and (min-width: 1100px) {
+  .app {
+    grid-template-columns: 240px 1fr 280px;
+  }
+  .slide-lyrics { font-size: 22px !important; }
+}
+
+/* ── Small desktop / large tablet (850–1099px):
+       collapse right panel into an overlay drawer ── */
+@media (max-width: 1099px) and (min-width: 851px) {
+  .app {
+    grid-template-columns: 220px 1fr 0px;
+  }
+  .right {
+    position: fixed;
+    top: 50px; right: 0; bottom: 48px;
+    width: 290px;
+    transform: translateX(100%);
+    transition: transform .25s ease;
+    z-index: 200;
+    box-shadow: -4px 0 24px rgba(0,0,0,.6);
+  }
+  .right.drawer-open {
+    transform: translateX(0);
+  }
+  /* Toggle button injected by JS */
+  #right-drawer-toggle {
+    display: flex !important;
+  }
+  .slide-lyrics { font-size: 20px !important; }
+}
+
+/* ── Tablet portrait (600–850px):
+       library becomes overlay, right panel becomes overlay ── */
+@media (max-width: 850px) and (min-width: 600px) {
+  .app {
+    grid-template-columns: 0px 1fr 0px;
+  }
+  .library {
+    position: fixed;
+    top: 50px; left: 0; bottom: 48px;
+    width: 260px;
+    transform: translateX(-100%);
+    transition: transform .25s ease;
+    z-index: 200;
+    box-shadow: 4px 0 24px rgba(0,0,0,.6);
+  }
+  .library.drawer-open { transform: translateX(0); }
+  .right {
+    position: fixed;
+    top: 50px; right: 0; bottom: 48px;
+    width: 280px;
+    transform: translateX(100%);
+    transition: transform .25s ease;
+    z-index: 200;
+    box-shadow: -4px 0 24px rgba(0,0,0,.6);
+  }
+  .right.drawer-open { transform: translateX(0); }
+  #lib-drawer-toggle   { display: flex !important; }
+  #right-drawer-toggle { display: flex !important; }
+  .slide-lyrics { font-size: 18px !important; }
+  .queue { height: 120px; }
+}
+
+/* ── Mobile (< 600px):
+       full single-column layout, overlays for everything ── */
+@media (max-width: 599px) {
+  .app {
+    grid-template-rows: 44px 1fr 44px;
+    grid-template-columns: 1fr;
+  }
+  .topbar {
+    grid-column: 1;
+    padding: 0 6px;
+    gap: 4px;
+  }
+  .library {
+    position: fixed;
+    top: 44px; left: 0; bottom: 44px;
+    width: 85vw; max-width: 320px;
+    transform: translateX(-110%);
+    transition: transform .25s ease;
+    z-index: 300;
+    box-shadow: 4px 0 24px rgba(0,0,0,.7);
+  }
+  .library.drawer-open { transform: translateX(0); }
+  .right {
+    position: fixed;
+    top: 44px; right: 0; bottom: 44px;
+    width: 85vw; max-width: 300px;
+    transform: translateX(110%);
+    transition: transform .25s ease;
+    z-index: 300;
+    box-shadow: -4px 0 24px rgba(0,0,0,.7);
+  }
+  .right.drawer-open { transform: translateX(0); }
+  .center {
+    grid-column: 1;
+  }
+  #lib-drawer-toggle   { display: flex !important; }
+  #right-drawer-toggle { display: flex !important; }
+  .slide-lyrics  { font-size: 16px !important; }
+  .queue         { height: 100px; }
+  .center-tabs .ctab { font-size: 8px; padding: 6px 6px; letter-spacing: 0; }
+  .bottom {
+    grid-column: 1;
+    gap: 4px;
+    padding: 0 6px;
+  }
+  .nav-btn   { padding: 5px 8px; font-size: 11px; }
+  .blank-btn { padding: 5px 8px; font-size: 10px; }
+  .logo-btn  { padding: 5px 8px; font-size: 10px; }
+  .size-ctrl { display: none; }
+  .ccli-wrap { display: none; }
+  .loop-btn  { display: none; }
+  .auto-wrap { display: none; }
+}
+
+/* ── Overlay backdrop ── */
+.drawer-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 199;
+  backdrop-filter: blur(2px);
+}
+.drawer-backdrop.visible { display: block; }
+
+/* ── Drawer toggle buttons (hidden by default, shown by breakpoints) ── */
+#lib-drawer-toggle,
+#right-drawer-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  color: var(--text-2);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+  transition: all .18s;
+  flex-shrink: 0;
+}
+#lib-drawer-toggle:hover,
+#right-drawer-toggle:hover {
+  border-color: var(--gold-dim);
+  color: var(--gold-light);
+}
+
+/* ── Prevent layout breaks from long words ── */
+.slide-lyrics,
+.out-txt,
+.bpp-text,
+.so-name,
+.sch-item-title {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* ── Thumb queue scrolls better on touch ── */
+.queue {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Touch-friendly tap targets ── */
+@media (pointer: coarse) {
+  .nav-btn,
+  .blank-btn,
+  .logo-btn,
+  .freeze-btn,
+  .loop-btn,
+  .sc-add,
+  .lib-item,
+  .thumb,
+  .so-item,
+  .sch-item {
+    min-height: 38px;
+  }
+  .bib-book-btn { min-height: 40px; }
+}
+
+/* ── Schedule view on small screens ── */
+@media (max-width: 850px) {
+  .sch-body { flex-direction: column; }
+  .sch-list-col { width: 100%; border-right: none; border-bottom: 1px solid var(--border-dim); max-height: 40vh; }
+  .sch-edit-col { max-height: 50vh; }
+}
+
+/* ── Service order drawer fits smaller screens ── */
+@media (max-width: 850px) {
+  .so-drawer-bottom { max-height: 250px; }
+}

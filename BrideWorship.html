@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrideWorship — Live Projection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles/BrideWorship.css">
+<link rel="stylesheet" href="styles/themes.css">
+<link rel="stylesheet" href="styles/king-james.css">
+<link rel="stylesheet" href="styles/bottom.css">
+<link rel="stylesheet" href="styles/right-panel.css">
+<link rel="stylesheet" href="styles/schedule.css">
+<link rel="stylesheet" href="styles/screens.css">
+<link rel="stylesheet" href="styles/the-table.css">
+<link rel="stylesheet" href="styles/database.css">
+<link rel="stylesheet" href="styles/modals.css">
+<link rel="stylesheet" href="styles/service-order.css">
+</head>
+<body>
+<div class="app">
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo">BrideWorship <small>Pro</small></div>
+  <div class="sep"></div>
+  <button class="tab-btn on" data-lib="ls-songs"   onclick="topTab(this)">🎵 Songs</button>
+  <button class="tab-btn"    data-lib="ls-scripture" onclick="topTab(this)">📖 Scripture</button>
+  <button class="tab-btn"    data-lib="ls-media"     onclick="topTab(this)">🖼 Media</button>
+  <button class="tab-btn"    data-lib="ls-presentations" onclick="topTab(this)">📊 Presentations</button>
+  <div class="sep"></div>
+  <button class="tab-btn custom-slide-btn" onclick="openCustomSlide()">✦ Custom Slide</button>
+  <!-- Drawer toggles — visible only on smaller screens -->
+  <button id="lib-drawer-toggle"   onclick="toggleDrawer('library')"  title="Toggle Library">☰</button>
+  <div class="spacer"></div>
+  <button id="right-drawer-toggle" onclick="toggleDrawer('right')"    title="Toggle Controls">⚙</button>
+  <button class="proj-btn" onclick="openHotkeys()" title="Keyboard Shortcuts">⌨ Hotkeys</button>
+  <button class="proj-btn" onclick="openNDISettings()" title="NDI Output Settings">📡 NDI</button>
+  <button class="proj-btn" onclick="openDBModal()" title="Import / Export Song Database">🗄 Database</button>
+  <button class="proj-btn table-btn" onclick="openTheTable()" title="The Table — Branham.org Sermon Library">📖 The Table</button>
+  <button class="proj-btn templates-btn" onclick="openTemplates()" title="Slide Templates">🎨 Templates</button>
+  <button class="proj-btn" onclick="openSettings()" title="Application Settings">⚙ Settings</button>
+  <button class="proj-btn" id="stage-btn" onclick="openStageDisplay()">🖥 Stage Display</button>
+  <button class="proj-btn" id="proj-btn"  onclick="openProjection()">⬛ Second Screen</button>
+  <div class="live-pill">
+    <div class="live-dot" id="ld"></div>
+    <span class="live-label" id="ls">Offline</span>
+  </div>
+  <button class="go-btn" id="go-btn" onclick="toggleLive()">GO LIVE</button>
+</header>
+
+<!-- LIBRARY -->
+<aside class="library">
+  <div class="lib-head">
+    <div class="lib-head-row">
+      <div class="panel-tag" style="margin:0;">Library</div>
+      <div class="lib-head-actions">
+        <button class="lib-add-btn" onclick="openSongEditor(-1)">+ Song</button>
+        <button class="lib-icon-btn" onclick="importSongs()" title="Import Songs JSON">⬇ Import</button>
+        <button class="lib-icon-btn" onclick="exportSongs()" title="Export Songs JSON">⬆ Export</button>
+      </div>
+    </div>
+    <input class="search" id="search" placeholder="Search songs, scripture…" oninput="filterSongs()">
+  </div>
+  <div class="lib-tabs">
+    <div class="ltab on" id="ltab-songs"          onclick="libTab(this,'ls-songs')">Songs</div>
+    <div class="ltab"    id="ltab-scripture"       onclick="libTab(this,'ls-scripture')">Scripture</div>
+    <div class="ltab"    id="ltab-media"           onclick="libTab(this,'ls-media')">Media</div>
+    <div class="ltab"    id="ltab-presentations"   onclick="libTab(this,'ls-presentations')">Slides</div>
+  </div>
+  <div class="lib-body">
+
+    <!-- SONGS -->
+    <div class="lib-section on" id="ls-songs"></div>
+
+    <!-- SCRIPTURE -->
+    <div class="lib-section" id="ls-scripture">
+
+      <!-- Version bar -->
+      <div class="bible-version-bar">
+        <span class="bible-logo">📖</span>
+        <span class="bible-version-name">King James Version</span>
+        <select class="fmt-select" id="bible-version-sel" style="margin-left:auto;width:70px;"
+          onchange="S.bibleVersion=this.options[this.selectedIndex].text">
+          <option value="kjv" selected>KJV</option>
+          <option value="web">WEB</option>
+          <option value="bbe">BBE</option>
+        </select>
+      </div>
+
+      <!-- Bible navigator -->
+     <div class="bible-nav-row">
+          <label class="bible-nav-lbl">Chapter</label>
+          <select class="bible-nav-sel" id="bib-ch" onchange="onBibChapterChange()"></select>
+          <label class="bible-nav-lbl" style="margin-left:6px;">Verse</label>
+          <select class="bible-nav-sel bib-vs-sel" id="bib-vs-from"
+            onchange="onBibFromChange()"></select>
+          <label class="bible-nav-lbl" id="bib-to-lbl">–</label>
+          <select class="bible-nav-sel bib-vs-sel" id="bib-vs-to">
+            <option value="same">—</option>
+          </select>
+        </div>
+        <div class="bible-nav-row" style="gap:4px;">
+          <label style="font-size:9px;color:var(--text-3);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;">
+            <input type="checkbox" id="bib-multi-verse" onchange="onBibMultiToggle()">
+            Multi-verse range
+          </label>
+        </div>
+        <div class="bible-nav-row">
+          <button class="sc-add" style="flex:2;" onclick="fetchBiblePassage()">📖 Load Passage</button>
+          <button class="sc-add"
+            style="flex:1;background:var(--bg-card);border:1px solid var(--border-dim);color:var(--text-2);"
+            onclick="loadFullBibleChapter()">Full Ch.</button>
+        </div>
+
+      <!-- Search -->
+      <div class="bible-search-bar">
+        <input class="sc-input" id="bib-search"
+          placeholder="Search any word or phrase in the Bible…"
+          style="flex:1;"
+          onkeydown="if(event.key==='Enter')bibleWordSearch(this.value)">
+        <button class="sc-add" onclick="bibleWordSearch(document.getElementById('bib-search').value)">Search</button>
+      </div>
+      <!-- Search results panel -->
+      <div id="bib-search-results" class="bib-search-results" style="display:none;">
+        <div class="bsr-head">
+          <span class="bsr-title" id="bsr-title">Results</span>
+          <button class="lib-icon-btn" onclick="closeBibSearchResults()">✕</button>
+        </div>
+        <div class="bsr-list" id="bsr-list"></div>
+      </div>
+      <!-- Testament tabs -->
+      <div class="bible-testament-tabs">
+        <div class="btt on" onclick="setBibTestament(this,'OT')">Old Testament</div>
+        <div class="btt"    onclick="setBibTestament(this,'NT')">New Testament</div>
+        <div class="btt"    onclick="setBibTestament(this,'FAV')">⭐ Saved</div>
+      </div>
+
+      <!-- Book grid -->
+      <div class="bible-book-grid" id="bib-book-grid"></div>
+
+      <!-- Saved passages -->
+      <div class="bible-saved-panel" id="bib-saved-panel" style="display:none;">
+        <div class="lib-empty">Saved passages appear here after you click ⭐</div>
+        <div id="bib-saved-list"></div>
+      </div>
+
+      <!-- Passage result viewer -->
+      <div class="bible-passage-panel" id="bib-passage-panel" style="display:none;">
+        <div class="bpp-head">
+          <span class="bpp-ref" id="bpp-ref">—</span>
+          <div style="display:flex;gap:4px;">
+            <button class="lib-icon-btn" onclick="saveBiblePassage()" title="Save passage">⭐</button>
+            <button class="lib-icon-btn" onclick="closeBibPassage()">✕</button>
+          </div>
+        </div>
+        <div class="bpp-text" id="bpp-text">Loading…</div>
+        <div class="bpp-options">
+          <label class="bpp-opt">
+            <input type="checkbox" id="bib-one-per-slide" checked> One verse per slide
+          </label>
+          <label class="bpp-opt" style="margin-left:8px;">
+            <input type="checkbox" id="bib-ref-on-slide"> Reference on each slide
+          </label>
+        </div>
+        <div class="bpp-actions">
+          <button class="sc-add" style="flex:2;" onclick="projectBiblePassage()">▶ Project Now</button>
+          <button class="sc-add" style="flex:1;background:var(--gold-dim);" onclick="addBibleToSO()">📋 SO</button>
+          <button class="sc-add" style="flex:1;background:var(--bg-card);border:1px solid var(--border-dim);color:var(--text-2);"
+            onclick="addBibleToSchedule()">📅 Schedule</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MEDIA -->
+    <div class="lib-section" id="ls-media">
+      <div style="padding:8px 12px;">
+        <button class="lib-add-btn" style="width:100%;margin-bottom:6px;" onclick="document.getElementById('import-media-input').click()">+ Import Media File</button>
+      </div>
+      <div class="lib-item"><div class="li-title">BG — Deep Blue Worship</div><div class="li-sub">Loop · 1920×1080</div><div class="li-tag">Video</div></div>
+      <div class="lib-item"><div class="li-title">BG — Golden Rays</div><div class="li-sub">Still · 4K</div><div class="li-tag">Image</div></div>
+      <div class="lib-item"><div class="li-title">BG — Forest Path</div><div class="li-sub">Still · 4K</div><div class="li-tag">Image</div></div>
+      <div class="lib-item"><div class="li-title">Countdown — 5 min</div><div class="li-sub">Countdown Timer</div><div class="li-tag">Timer</div></div>
+      <div id="ls-media-extra"></div>
+    </div>
+
+    <!-- PRESENTATIONS -->
+    <div class="lib-section" id="ls-presentations">
+      <div style="padding:8px 12px;border-bottom:1px solid var(--border-dim);display:flex;flex-direction:column;gap:5px;">
+        <button class="lib-add-btn" onclick="openNewPresentation()">+ New Presentation</button>
+        <button class="lib-icon-btn" style="width:100%;" onclick="document.getElementById('import-pres-input').click()">⬇ Import .bwpres</button>
+      </div>
+      <div id="presentations-list">
+        <div class="lib-empty" style="padding:20px 12px;">No presentations yet.<br>Create one above.</div>
+      </div>
+    </div>
+
+  </div><!-- .lib-body -->
+</aside>
+
+<!-- CENTER -->
+<main class="center">
+  <div class="center-tabs">
+    <div class="ctab on" onclick="centerTab(this,'slides-view')">Slides</div>
+    <div class="ctab"    onclick="centerTab(this,'service-view')">Service Order</div>
+    <div class="ctab"    onclick="centerTab(this,'schedule-view')">📅 Schedule</div>
+    <div class="ctab"    onclick="centerTab(this,'timer-view')">Countdown Timer</div>
+  </div>
+
+  <!-- SLIDES VIEW -->
+  <div id="slides-view" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+    <div class="queue" id="queue">
+      <div class="queue-empty">— Select a song to populate the queue —</div>
+    </div>
+    <div class="stage">
+      <div class="main-slide trans-fade" id="main-slide">
+        <div class="slide-bg" id="slide-bg"></div>
+        <div class="slide-grid" id="slide-grid"></div>
+        <div class="corner tl" id="c-tl"></div><div class="corner tr" id="c-tr"></div>
+        <div class="corner bl" id="c-bl"></div><div class="corner br" id="c-br"></div>
+        <div class="slide-inner">
+          <div class="slide-song-title" id="s-title">— BrideWorship Pro —</div>
+          <div class="slide-lyrics" id="s-text" style="font-size:20px;color:var(--text-3);">Select a song or build your Service Order to begin projecting.</div>
+        </div>
+        <div class="slide-footer" id="s-footer"></div>
+        <div class="lt-overlay" id="lt-overlay"><div class="lt-overlay-text" id="lt-overlay-text"></div></div>
+        <div class="freeze-overlay" id="freeze-overlay">❄ FROZEN</div>
+      </div>
+    </div>
+    <div class="notes-panel" id="notes-panel">
+      <div class="notes-header">
+        <span class="notes-icon">📝</span>
+        <span class="notes-label">Slide Notes <em>(Stage Display only — not projected)</em></span>
+        <button class="notes-toggle" id="notes-toggle" onclick="toggleNotesPanel()">▼ Hide</button>
+      </div>
+      <textarea class="notes-textarea" id="notes-textarea"
+        placeholder="Add notes for this slide — visible on Stage Display only…"
+        oninput="saveCurrentNote()"></textarea>
+    </div>
+  </div>
+
+<!-- ══════════════════════════════════════
+     SCHEDULE VIEW
+══════════════════════════════════════ -->
+<div id="schedule-view" class="schedule-view" style="display:none;">
+
+  <!-- Schedule toolbar -->
+  <div class="sch-toolbar">
+    <div class="sch-title-wrap">
+      <input class="sch-title-inp" id="sch-title" placeholder="Schedule Name (e.g. Sunday Morning Service)">
+    </div>
+    <div class="sch-toolbar-actions">
+      <button class="sch-btn" onclick="newSchedule()" title="New schedule">+ New</button>
+      <button class="sch-btn" onclick="saveSchedule()" title="Save schedule">💾 Save</button>
+      <button class="sch-btn" onclick="loadScheduleDialog()" title="Load saved schedule">📂 Load</button>
+      <button class="sch-btn" onclick="exportSchedule()" title="Export">⬆ Export</button>
+      <button class="sch-btn" onclick="document.getElementById('sch-import-input').click()" title="Import">⬇ Import</button>
+      <button class="sch-btn" onclick="printSchedule()" title="Print run sheet">🖨 Print</button>
+    </div>
+  </div>
+
+  <!-- Add item bar -->
+  <div class="sch-add-bar">
+    <!-- Global drag hint — appears when dragging from library -->
+  <div class="sch-drag-hint" id="sch-drag-hint">
+    <span>🎯 Dragging to Schedule — drop anywhere in the Run Order list</span>
+  </div>
+    <span class="sch-add-label">ADD:</span>
+    <div class="sch-add-row">
+      <!-- Song picker -->
+      <div class="sch-add-group">
+        <select class="sch-select" id="sch-song-pick">
+          <option value="">— Select Song —</option>
+        </select>
+        <button class="sch-add-btn song" onclick="scheduleAddSong()">🎵 Song</button>
+      </div>
+      <!-- Scripture quick add -->
+      <div class="sch-add-group">
+        <input class="sch-inp" id="sch-sc-inp" placeholder="Scripture ref…"
+          onkeydown="if(event.key==='Enter')scheduleAddScripture()">
+        <button class="sch-add-btn scripture" onclick="scheduleAddScripture()">📖 Scripture</button>
+      </div>
+      <!-- Quick type buttons -->
+      <button class="sch-add-btn sermon"       onclick="scheduleAddItem('Sermon',       'sermon')">🎤 Sermon</button>
+      <button class="sch-add-btn announcement" onclick="scheduleAddItem('Announcement', 'announcement')">📢 Announce</button>
+      <button class="sch-add-btn media"        onclick="scheduleAddItem('Media',        'media')">🖼 Media</button>
+      <button class="sch-add-btn timer-t"      onclick="scheduleAddItem('Countdown',    'timer')">⏱ Timer</button>
+      <button class="sch-add-btn blank-b"      onclick="scheduleAddBlank()">⬛ Blank</button>
+      <button class="sch-add-btn logo-l"       onclick="scheduleAddLogo()">◈ Logo</button>
+    </div>
+  </div>
+
+  <!-- Main schedule body -->
+  <div class="sch-body">
+
+    <!-- LEFT: ordered item list -->
+    <div class="sch-list-col">
+      <div class="sch-list-head">
+        <span>Run Order</span>
+        <div style="display:flex;gap:4px;">
+          <button class="sch-ctrl-btn" onclick="scheduleSelectAll()" title="Select all">☑ All</button>
+          <button class="sch-ctrl-btn" onclick="scheduleDeselectAll()" title="Deselect all">☐ None</button>
+          <button class="sch-ctrl-btn danger" onclick="scheduleDeleteSelected()" title="Delete selected">✕ Delete</button>
+        </div>
+      </div>
+     <div class="sch-list" id="sch-list"
+        ondragover="schListDragOver(event)"
+        ondragleave="schListDragLeave(event)"
+        ondrop="schListDrop(event)">
+        <!-- Library drop zone hint — shown during library drag -->
+        <div class="sch-lib-dropzone" id="sch-lib-dropzone">
+          <div class="sld-inner">
+            <div class="sld-icon">📥</div>
+            <div class="sld-text">Drop here to add to Schedule</div>
+          </div>
+        </div>
+        <div class="sch-empty" id="sch-empty">
+          <div class="sch-empty-icon">📅</div>
+          <div>Your schedule is empty.</div>
+          <div style="font-size:10px;margin-top:4px;">Add items using the bar above.</div>
+        </div>
+      </div>
+      <!-- Schedule navigation -->
+      <div class="sch-nav-bar">
+        <button class="sch-nav-btn" onclick="schNavFirst()" title="Go to first item">⏮ First</button>
+        <button class="sch-nav-btn" onclick="schNavPrev()"  title="Previous item">← Prev</button>
+        <div class="sch-nav-counter" id="sch-nav-counter">— / —</div>
+        <button class="sch-nav-btn" onclick="schNavNext()"  title="Next item">Next →</button>
+        <button class="sch-nav-btn" onclick="schNavLast()"  title="Go to last item">⏭ Last</button>
+        <div class="sch-auto-wrap">
+          <button class="sch-auto-btn" id="sch-auto-btn" onclick="toggleSchAutoRun()" title="Auto-run schedule">⏩ Auto</button>
+          <select class="auto-sel" id="sch-auto-interval">
+            <option value="5">5s</option>
+            <option value="10" selected>10s</option>
+            <option value="15">15s</option>
+            <option value="30">30s</option>
+            <option value="60">1 min</option>
+          </select>
+        </div>
+        <button class="sch-loop-btn" id="sch-loop-btn" onclick="toggleSchLoop()" title="Loop schedule">↺ Loop</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: item editor + preview -->
+    <div class="sch-edit-col">
+
+      <!-- Mini preview -->
+      <div class="sch-preview-wrap">
+        <div class="panel-tag" style="margin-bottom:5px;">Item Preview</div>
+        <div class="sch-preview-screen" id="sch-preview-screen">
+          <div class="out-bg" id="sch-preview-bg"></div>
+          <div class="sch-preview-inner">
+            <div class="sch-preview-ref"  id="sch-preview-ref"></div>
+            <div class="sch-preview-text" id="sch-preview-text">Select an item to preview</div>
+          </div>
+          <div class="sch-preview-badge" id="sch-preview-badge">SELECT</div>
+        </div>
+      </div>
+
+      <!-- Item editor -->
+      <div class="sch-editor" id="sch-editor" style="display:none;">
+        <div class="panel-tag" style="margin-bottom:6px;" id="sch-editor-label">Edit Item</div>
+
+        <div style="display:flex;gap:6px;margin-bottom:7px;">
+          <div style="flex:1;">
+            <div class="modal-label" style="margin-bottom:3px;">Label / Title</div>
+            <input class="modal-input" id="sch-edit-label" placeholder="Item label…" style="padding:5px 8px;">
+          </div>
+          <div style="flex:0 0 120px;">
+            <div class="modal-label" style="margin-bottom:3px;">Type</div>
+            <select class="modal-input" id="sch-edit-type" style="padding:5px 8px;"
+              onchange="onSchTypeChange()">
+              <option value="song">Song</option>
+              <option value="scripture">Scripture</option>
+              <option value="sermon">Sermon</option>
+              <option value="announcement">Announcement</option>
+              <option value="media">Media</option>
+              <option value="timer">Timer</option>
+              <option value="blank">Blank</option>
+              <option value="logo">Logo</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Content area — changes based on type -->
+        <div id="sch-content-area">
+
+          <!-- text content (scripture / sermon / announcement) -->
+          <div id="sch-text-area">
+            <div class="modal-label" style="margin-bottom:3px;">Slide Content</div>
+            <textarea class="modal-input" id="sch-edit-content"
+              style="min-height:80px;resize:vertical;font-size:12px;line-height:1.7;"
+              placeholder="Type content here… blank lines = new slide, [Label] = section header."></textarea>
+          </div>
+
+          <!-- song selector -->
+          <div id="sch-song-area" style="display:none;">
+            <div class="modal-label" style="margin-bottom:3px;">Song from Library</div>
+            <select class="modal-input" id="sch-edit-song" style="padding:5px 8px;"></select>
+            <div style="font-size:10px;color:var(--text-3);margin-top:4px;">Slides will be loaded from the song's library entry.</div>
+          </div>
+
+          <!-- media area -->
+          <div id="sch-media-area" style="display:none;">
+            <div class="modal-label" style="margin-bottom:3px;">Media</div>
+            <div style="display:flex;gap:5px;">
+              <select class="modal-input" id="sch-edit-media" style="flex:1;padding:5px 8px;">
+                <option value="">— Select imported media —</option>
+              </select>
+              <button class="sc-add" onclick="document.getElementById('sch-media-upload').click()">+ Import</button>
+              <input type="file" id="sch-media-upload" style="display:none;"
+                accept="image/*,video/*" onchange="scheduleImportMedia(event)">
+            </div>
+          </div>
+
+          <!-- timer area -->
+          <div id="sch-timer-area" style="display:none;">
+            <div class="modal-label" style="margin-bottom:3px;">Duration</div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <input type="number" class="modal-input" id="sch-edit-timer-min"
+                min="0" max="99" value="5" style="width:60px;padding:5px 8px;text-align:center;">
+              <span style="color:var(--text-3);">min</span>
+              <input type="number" class="modal-input" id="sch-edit-timer-sec"
+                min="0" max="59" value="0"  style="width:60px;padding:5px 8px;text-align:center;">
+              <span style="color:var(--text-3);">sec</span>
+            </div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:4px;">Timer will project and count down when this item is activated.</div>
+          </div>
+
+          <!-- Notes for any item -->
+          <div style="margin-top:7px;">
+            <div class="modal-label" style="margin-bottom:3px;">Notes <span style="color:var(--text-3);font-size:9px;font-family:'Lato',sans-serif;letter-spacing:0;text-transform:none;">(stage display / operator only)</span></div>
+            <textarea class="modal-input" id="sch-edit-notes"
+              style="min-height:42px;resize:none;font-size:11px;line-height:1.6;"
+              placeholder="Operator notes, cues, reminders…"></textarea>
+          </div>
+
+          <!-- Duration estimate -->
+          <div style="margin-top:7px;display:flex;gap:6px;align-items:center;">
+            <div class="modal-label" style="margin:0;">Est. Duration:</div>
+            <input type="number" class="modal-input" id="sch-edit-duration"
+              min="0" max="60" placeholder="mins"
+              style="width:58px;padding:4px 7px;font-size:12px;">
+            <span style="font-size:10px;color:var(--text-3);">minutes</span>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:5px;margin-top:9px;">
+          <button class="sc-add" style="flex:2;padding:8px;font-size:12px;"
+            onclick="saveSchItemAndProject()">▶ Save &amp; Project</button>
+          <button class="sc-add" style="flex:1;padding:8px;font-size:12px;background:var(--gold-dim);"
+            onclick="saveSchItem()">💾 Save</button>
+          <button class="sc-add"
+            style="flex:0 0 70px;padding:8px;font-size:12px;
+              background:var(--bg-card);border:1px solid var(--border-dim);color:var(--text-2);"
+            onclick="closeSchEditor()">✕</button>
+        </div>
+      </div>
+
+      <!-- Saved schedules list -->
+      <div class="sch-saved-col" id="sch-saved-col">
+        <div class="panel-tag" style="margin-bottom:5px;">Saved Schedules</div>
+        <div id="sch-saved-list" class="sch-saved-list">
+          <div style="font-size:10px;color:var(--text-3);padding:8px;">No saved schedules yet.</div>
+        </div>
+      </div>
+
+    </div><!-- .sch-edit-col -->
+  </div><!-- .sch-body -->
+
+  <!-- Total duration bar -->
+  <div class="sch-duration-bar" id="sch-duration-bar">
+    <span class="sch-dur-label">Total estimated duration:</span>
+    <span class="sch-dur-val"  id="sch-dur-total">0 min</span>
+    <span class="sch-dur-label" style="margin-left:14px;">Items:</span>
+    <span class="sch-dur-val"  id="sch-dur-items">0</span>
+    <div style="flex:1;"></div>
+    <span class="sch-dur-label">Progress:</span>
+    <div class="sch-progress-track">
+      <div class="sch-progress-fill" id="sch-progress-fill"></div>
+    </div>
+    <span class="sch-dur-val" id="sch-progress-pct">0%</span>
+  </div>
+
+</div><!-- #schedule-view -->
+
+<input type="file" id="sch-import-input" accept=".json,.bwsch"
+  style="display:none;" onchange="importSchedule(event)">
+
+  <!-- SERVICE ORDER -->
+  <div id="service-view" class="service-panel">
+    <div class="so-toolbar">
+      <input type="text" id="so-inp" placeholder="Item name (e.g. Opening Prayer, Sermon Title…)" onkeydown="if(event.key==='Enter')addSOItem()">
+      <select id="so-type">
+        <option value="song">Song</option>
+        <option value="scripture">Scripture</option>
+        <option value="sermon">Sermon</option>
+        <option value="announcement">Announcement</option>
+        <option value="timer">Timer</option>
+      </select>
+      <button class="so-add-btn" onclick="addSOItem()">+ Add</button>
+      <button class="so-add-btn" style="background:var(--bg-hover);border:1px solid var(--border-dim);color:var(--text-2);" onclick="exportServiceOrder()" title="Export as JSON">⬆ Export</button>
+      <button class="so-add-btn" style="background:var(--bg-hover);border:1px solid var(--border-dim);color:var(--text-2);" onclick="printServiceOrder()" title="Print service order">🖨 Print</button>
+    </div>
+    <div class="so-quick">
+      <span class="so-quick-label">QUICK ADD:</span>
+      <div class="qbtn" onclick="quickAdd('Opening Worship','song')">🎵 Worship</div>
+      <div class="qbtn" onclick="quickAdd('Welcome & Announcements','announcement')">📢 Welcome</div>
+      <div class="qbtn" onclick="quickAdd('Scripture Reading','scripture')">📖 Scripture</div>
+      <div class="qbtn" onclick="quickAdd('Sermon','sermon')">🎤 Sermon</div>
+      <div class="qbtn" onclick="quickAdd('Offering','announcement')">🙏 Offering</div>
+      <div class="qbtn" onclick="quickAdd('Holy Communion','announcement')">✝ Communion</div>
+      <div class="qbtn" onclick="quickAdd('5-Min Countdown','timer')">⏱ Timer</div>
+      <div class="qbtn" onclick="quickAdd('Closing Song','song')">🎵 Closing</div>
+    </div>
+    <div class="so-list" id="so-list">
+  <div id="so-empty">
+    <div class="so-empty-icon">📋</div>
+    Your service order is empty.<br>Add items above or use Quick Add.
+  </div>
+</div>
+
+<!-- Drawer lives here permanently — never moved into so-list -->
+<div id="so-editor-drawer" class="so-editor-drawer so-drawer-bottom" style="display:none;">
+  <div class="so-drawer-head">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="so-active-indicator" id="so-drawer-indicator"></div>
+      <span class="so-drawer-title" id="so-drawer-label">Edit Item</span>
+    </div>
+    <button class="modal-x" onclick="closeSODrawer()">✕</button>
+  </div>
+  <div class="so-drawer-body">
+    <div style="display:flex;gap:7px;margin-bottom:8px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:140px;">
+        <div class="modal-label" style="margin-bottom:3px;">Item Name</div>
+        <input class="modal-input" id="so-edit-name"
+          placeholder="Item name…" style="padding:6px 8px;">
+      </div>
+      <div style="flex:0 0 140px;">
+        <div class="modal-label" style="margin-bottom:3px;">Type</div>
+        <select class="modal-input" id="so-edit-type" style="padding:6px 8px;">
+          <option value="song">Song</option>
+          <option value="scripture">Scripture</option>
+          <option value="sermon">Sermon / Message</option>
+          <option value="announcement">Announcement</option>
+          <option value="timer">Timer</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-label" style="margin-bottom:3px;">
+      Slide Content
+      <span style="color:var(--text-3);font-family:'Lato',sans-serif;
+        font-weight:400;letter-spacing:0;text-transform:none;font-size:10px;">
+        — blank lines = separate slides · [Label] = section header
+      </span>
+    </div>
+    <textarea class="modal-input" id="so-edit-content"
+      style="min-height:90px;resize:vertical;font-size:12px;line-height:1.8;"
+      placeholder="Type or paste content…&#10;&#10;Songs: leave blank to auto-load from library.&#10;Scripture: paste verse text here.&#10;Announcement: type your text."></textarea>
+
+    <!-- Scripture lookup — shown only for scripture type -->
+    <div id="so-scripture-lookup" style="display:none;margin-top:7px;">
+      <div style="display:flex;gap:5px;">
+        <input class="sc-input" id="so-sc-ref"
+          placeholder="e.g. John 3:16 — press Enter to look up"
+          onkeydown="if(event.key==='Enter')lookupSOScripture()" style="flex:1;">
+        <button class="sc-add" onclick="lookupSOScripture()">Look Up</button>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div style="display:flex;gap:6px;margin-top:9px;flex-wrap:wrap;">
+      <button class="sc-add" style="flex:2;padding:9px;font-size:12px;"
+        onclick="saveSOItemAndProject()">
+        ▶ Save &amp; Project Now
+      </button>
+      <button class="sc-add"
+        style="flex:1;padding:9px;font-size:12px;background:var(--gold-dim);"
+        onclick="saveSOItem()">
+        💾 Save Only
+      </button>
+      <button class="sc-add"
+        style="flex:0 0 80px;padding:9px;font-size:12px;
+               background:var(--bg-card);border:1px solid var(--border-dim);color:var(--text-2);"
+        onclick="closeSODrawer()">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+  <!-- TIMER -->
+  <div id="timer-view" class="timer-panel">
+    <div class="timer-display" id="t-display">05:00</div>
+    <div class="timer-label">COUNTDOWN TIMER</div>
+    <div class="timer-presets">
+      <button class="preset-btn" onclick="setTimer(1)">1 min</button>
+      <button class="preset-btn" onclick="setTimer(2)">2 min</button>
+      <button class="preset-btn" onclick="setTimer(3)">3 min</button>
+      <button class="preset-btn" onclick="setTimer(5)">5 min</button>
+      <button class="preset-btn" onclick="setTimer(10)">10 min</button>
+      <button class="preset-btn" onclick="setTimer(15)">15 min</button>
+      <button class="preset-btn" onclick="setTimer(30)">30 min</button>
+    </div>
+    <div class="timer-custom">
+      <input class="t-inp" type="number" id="t-min" min="0" max="99" value="5">
+      <span class="t-colon">:</span>
+      <input class="t-inp" type="number" id="t-sec" min="0" max="59" value="0">
+      <button class="preset-btn" onclick="setTimerCustom()" style="padding:7px 14px;">Set</button>
+    </div>
+    <div class="timer-controls">
+      <button class="tc tc-start" id="tc-start" onclick="startTimer()">▶ Start</button>
+      <button class="tc tc-pause" id="tc-pause" onclick="pauseTimer()" disabled>⏸ Pause</button>
+      <button class="tc tc-reset" onclick="resetTimer()">↺ Reset</button>
+      <button class="tc tc-proj" id="tc-proj" onclick="toggleTimerProj()">📡 Project</button>
+    </div>
+    <div class="timer-note" id="t-note">Timer not projected — click "Project" to show on live screen.</div>
+    <label style="margin-top:14px;display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text-3);cursor:pointer;">
+      <input type="checkbox" id="count-up-chk" onchange="S.timer.countUp=this.checked"> Count Up Instead
+    </label>
+    <div style="margin-top:12px;display:flex;flex-direction:column;gap:5px;width:260px;">
+      <span style="font-size:10px;color:var(--text-3);font-family:Cinzel,serif;letter-spacing:1px;">END MESSAGE (projected)</span>
+      <input class="sc-input" id="timer-end-msg" type="text" placeholder="e.g. Service Beginning Now…" style="width:100%;">
+    </div>
+  </div>
+</main>
+
+<!-- RIGHT PANEL -->
+<aside class="right">
+
+  <!-- ══ STICKY OUTPUT PREVIEW — always visible ══ -->
+  <div class="out-wrap-sticky" id="out-wrap-sticky">
+    <div class="out-wrap-head">
+      <div class="panel-tag" style="margin:0;">Output Preview</div>
+      <div style="display:flex;gap:5px;align-items:center;">
+        <span id="out-res-label" style="font-size:9px;color:var(--text-3);">1920×1080</span>
+        <span style="font-size:9px;color:var(--text-3);">·</span>
+        <span style="font-size:9px;color:var(--text-3);">60 fps</span>
+      </div>
+    </div>
+    <div class="out-screen" id="out-screen">
+      <div class="out-bg" id="out-bg"></div>
+      <!-- Vignette layer -->
+      <div class="out-vignette" id="out-vignette" style="display:none;"></div>
+      <!-- Watermark layer -->
+      <div class="out-watermark" id="out-watermark"></div>
+      <div class="out-inner">
+        <div class="out-ref" id="o-ref">· · ·</div>
+        <div class="out-txt" id="o-txt">No content</div>
+      </div>
+      <!-- Lower third on preview -->
+      <div class="out-lt" id="out-lt"></div>
+      <!-- Clock -->
+      <div class="out-clock pos-br" id="out-clock">00:00 AM</div>
+      <!-- Live badge -->
+      <div class="out-badge" id="o-badge">HIDDEN</div>
+    </div>
+    <!-- Mini transport controls under preview -->
+    <div class="out-mini-transport">
+      <button class="omt-btn" onclick="prevSlide()" title="Prev slide">◀</button>
+      <button class="omt-btn blank-mini" id="omt-blank" onclick="toggleBlank()" title="Blank">■</button>
+      <button class="omt-btn freeze-mini" id="omt-freeze" onclick="toggleFreeze()" title="Freeze">❄</button>
+      <button class="omt-btn logo-mini" id="omt-logo" onclick="toggleLogo()" title="Logo">◈</button>
+      <button class="omt-btn" onclick="nextSlide()" title="Next slide">▶</button>
+      <div class="omt-counter" id="omt-counter">— / —</div>
+    </div>
+  </div>
+
+  <!-- ══ SCROLLABLE SECTIONS ══ -->
+  <div class="right-inner" id="right-inner-scroll">
+
+    <!-- Text Style -->
+    <div class="r-section r-accordion">
+      <div class="r-acc-head" onclick="toggleAccordion(this)">
+        <span class="panel-tag" style="margin:0;">✦ Text Style</span>
+        <span class="r-acc-icon">+</span>
+      </div>
+      <div class="r-acc-body" style="display:none;">
+        <div class="fmt-row">
+          <select class="fmt-select" id="font-sel" onchange="setFont(this.value)" style="flex:1;">
+            <option value="playfair">Playfair Display</option>
+            <option value="cinzel">Cinzel Serif</option>
+            <option value="lato">Lato Sans</option>
+            <option value="sans">System Sans</option>
+          </select>
+        </div>
+        <div class="fmt-row" style="margin-top:6px;">
+          <button class="align-btn" id="align-left"   onclick="setAlign('left')"  >≡ Left</button>
+          <button class="align-btn on" id="align-center" onclick="setAlign('center')">≡ Center</button>
+          <button class="align-btn" id="align-right"  onclick="setAlign('right')" >≡ Right</button>
+        </div>
+        <div class="fmt-row" style="margin-top:6px;flex-wrap:wrap;gap:4px;">
+          <button class="align-btn" id="fmt-bold"   onclick="toggleFmt('bold')"   style="font-weight:700;flex:0 0 32px;">B</button>
+          <button class="align-btn" id="fmt-italic" onclick="toggleFmt('italic')" style="font-style:italic;flex:0 0 32px;">I</button>
+          <span class="fmt-label" style="margin-left:4px;">Shadow:</span>
+          <select class="fmt-select" id="fmt-shadow" onchange="applyFormat()" style="flex:1;">
+            <option value="soft">Soft</option>
+            <option value="glow">Glow</option>
+            <option value="hard">Hard</option>
+            <option value="outline">Outline</option>
+            <option value="none">None</option>
+          </select>
+        </div>
+        <div class="fmt-row" style="margin-top:6px;align-items:center;gap:6px;">
+          <span class="fmt-label">Color:</span>
+          <div id="color-row" class="color-row"></div>
+        </div>
+        <div class="fmt-row" style="margin-top:6px;align-items:center;gap:6px;">
+          <span class="fmt-label">Spacing:</span>
+          <select class="fmt-select" id="line-spacing" onchange="applyFormat()" style="flex:1;">
+            <option value="1.3" selected>Tight</option>
+            <option value="1.5">Normal</option>
+            <option value="1.65">Relaxed</option>
+            <option value="1.9">Wide</option>
+            <option value="2.2">Extra Wide</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Theme Presets -->
+    <div class="r-section r-accordion">
+      <div class="r-acc-head" onclick="toggleAccordion(this)">
+        <span class="panel-tag" style="margin:0;">✦ Theme Presets</span>
+        <span class="r-acc-icon">+</span>
+      </div>
+      <div class="r-acc-body" style="display:none;">
+        <div class="theme-grid" id="theme-grid"></div>
+      </div>
+    </div>
+
+    <!-- Background -->
+    <div class="r-section r-accordion">
+      <div class="r-acc-head" onclick="toggleAccordion(this)">
+        <span class="panel-tag" style="margin:0;">✦ Background</span>
+        <span class="r-acc-icon">+</span>
+      </div>
+      <div class="r-acc-body" style="display:none;">
+        <div class="bg-grid" id="bg-grid"></div>
+        <div style="margin-top:7px;display:flex;align-items:center;gap:6px;">
+          <span class="fmt-label">Custom:</span>
+          <input type="color"
+            style="width:32px;height:26px;border:1px solid var(--border-dim);border-radius:3px;cursor:pointer;background:none;padding:1px;"
+            id="bg-custom-pick" value="#08051a" onchange="setCustomBg(this.value)">
+          <span class="fmt-label" style="margin-left:4px;">Opacity:</span>
+          <input type="range" min="20" max="100" value="100" style="flex:1;"
+            oninput="applyBgOpacity(this.value)">
+        </div>
+        <div style="margin-top:7px;display:flex;gap:12px;">
+          <label style="font-size:11px;color:var(--text-2);display:flex;align-items:center;gap:5px;cursor:pointer;">
+            <input type="checkbox" id="deco-grid"    checked onchange="toggleDeco('grid')"> Grid Lines
+          </label>
+          <label style="font-size:11px;color:var(--text-2);display:flex;align-items:center;gap:5px;cursor:pointer;">
+            <input type="checkbox" id="deco-corners" checked onchange="toggleDeco('corners')"> Corners
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide Transitions -->
+    <div class="r-section r-accordion">
+      <div class="r-acc-head" onclick="toggleAccordion(this)">
+        <span class="panel-tag" style="margin:0;">✦ Slide Transitions</span>
+        <span class="r-acc-icon">+</span>
+      </div>
+      <div class="r-acc-body" style="display:none;">
+        <div class="trans-row">
+          <div class="trans-btn on" onclick="pickTrans(this)">Fade</div>
+          <div class="trans-btn"    onclick="pickTrans(this)">Slide</div>
+          <div class="trans-btn"    onclick="pickTrans(this)">Dissolve</div>
+          <div class="trans-btn"    onclick="pickTrans(this)">Cut</div>
+        </div>
+        <div style="margin-top:6px;display:flex;align-items:center;gap:6px;">
+          <span class="fmt-label">Speed:</span>
+          <select class="fmt-select" id="trans-speed-sel"
+            onchange="S.transSpeed=parseFloat(this.value)" style="flex:1;">
+            <option value="0.2">Fast (0.2s)</option>
+            <option value="0.5" selected>Normal (0.5s)</option>
+            <option value="0.8">Slow (0.8s)</option>
+            <option value="1.2">Very Slow (1.2s)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clock Display -->
+    <div class="r-section r-accordion">
+      <div class="r-acc-head" onclick="toggleAccordion(this)">
+        <span class="panel-tag" style="margin:0;">✦ Clock Display</span>
+        <div style="display:flex;align-items:center;gap:6px;" onclick="event.stopPropagation()">
+          <label class="toggle-sw" title="Show clock on output">
+            <input type="checkbox" id="clock-toggle" checked onchange="toggleClock(this.checked)">
+            <div class="toggle-track"></div>
+          </label>
+          <span class="r-acc-icon">+</span>
+        </div>
+      </div>
+      <div class="r-acc-body" style="display:none;">
+        <div id="clock-settings-panel" style="display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;gap:5px;align-items:center;">
+            <span class="fmt-label">Format:</span>
+            <select class="fmt-select" id="clock-format" style="flex:1;" onchange="updateClockSettings()">
+              <option value="12h">12-Hour (3:45 PM)</option>
+              <option value="24h">24-Hour (15:45)</option>
+              <option value="12hs">12h + Seconds</option>
+              <option value="24hs">24h + Seconds</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:5px;align-items:center;">
+            <span class="fmt-label">Color:</span>
+            <input type="color" id="clock-color" value="#ffffff"
+              style="width:30px;height:22px;border:1px solid var(--border-dim);border-radius:3px;cursor:pointer;padding:1px;background:none;"
+              onchange="updateClockSettings()">
+            <span class="fmt-label" style="margin-left:4px;">Size:</span>
+            <select class="fmt-select" id="clock-size" style="flex:1;" onchange="updateClockSettings()">
+              <option value="9px">Small</option>
+              <option value="11px" selected>Medium</option>
+              <option value="14px">Large</option>
+              <option value="18px">X-Large</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:5px;align-items:center;">
+            <span class="fmt-label">Position:</span>
+            <select class="fmt-select" id="clock-pos" style="flex:1;" onchange="updateClockSettings()">
+              <option value="br" selected>Bottom Right</option>
+              <option value="bl">Bottom Left</option>
+              <option value="tr">Top Right</option>
+              <option value="tl">Top Left</option>
+              <option value="bc">Bottom Center</option>
+              <option value="tc">Top Center</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:5px;align-items:center;">
+            <span class="fmt-label">Style:</span>
+            <select class="fmt-select" id="clock-style" style="flex:1;" onchange="updateClockSettings()">
+              <option value="plain">Plain</option>
+              <option value="shadow" selected>Drop Shadow</option>
+              <option value="box">Dark Box</option>
+              <option value="outline">Outline</option>
+              <option value="gold">Gold</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <label style="font-size:10px;color:var(--text-2);display:flex;align-items:center;gap:3px;cursor:pointer;">
+              <input type="checkbox" id="clock-on-proj" checked onchange="updateClockSettings()"> Second Screen
+            </label>
+            <label style="font-size:10px;color:var(--text-2);display:flex;align-items:center;gap:3px;cursor:pointer;">
+              <input type="checkbox" id="clock-on-stage" checked onchange="updateClockSettings()"> Stage
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+   
+
+    <!-- Lower Third -->
+    <div class="r-section r-accordion">
+      <div class="r-acc-head" onclick="toggleAccordion(this)">
+        <span class="panel-tag" style="margin:0;">✦ Lower Third / Ticker</span>
+        <span class="r-acc-icon">+</span>
+      </div>
+      <div class="r-acc-body" style="display:none;">
+        <div style="display:flex;gap:5px;margin-top:4px;">
+          <input class="sc-input" id="lt-input" placeholder="Lower third text…"
+            style="flex:1;" onkeydown="if(event.key==='Enter')sendLT()">
+          <button class="sc-add" onclick="sendLT()">Send</button>
+          <button class="sc-add"
+            style="background:rgba(224,80,80,.18);border:1px solid var(--red);color:var(--red);"
+            onclick="clearLT()">✕</button>
+        </div>
+        <select class="fmt-select" id="lt-style" style="width:100%;margin-top:5px;">
+          <option value="default">Default (Dark)</option>
+          <option value="gold">Gold Banner</option>
+          <option value="dark">Solid Black</option>
+          <option value="alert">Alert Red</option>
+        </select>
+        <!-- Live LT preview strip -->
+        <div id="lt-preview-strip" class="lt-preview-strip" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- Quick Alerts -->
+    <div class="r-section r-accordion">
+      <div class="r-acc-head" onclick="toggleAccordion(this)">
+        <span class="panel-tag" style="margin:0;">✦ Quick Alerts</span>
+        <span class="r-acc-icon">+</span>
+      </div>
+      <div class="r-acc-body" style="display:none;">
+        <div class="alert-card" onclick="showAlert('Welcome to Sunday Service','Welcome! Please silence your mobile phones and make room for those still arriving.')"><span class="a-type ann">Announcement</span><div class="alert-title">Welcome Message</div><div class="alert-sub">Silence phones · Make room</div></div>
+        <div class="alert-card" onclick="showAlert('Offering Time','Offering will now be received. The Lord loveth a cheerful giver. — 2 Corinthians 9:7')"><span class="a-type ann">Announcement</span><div class="alert-title">Offering Time</div><div class="alert-sub">2 Cor 9:7 — Give cheerfully</div></div>
+        <div class="alert-card" onclick="showAlert('Children\'s Church','Children ages 3–10 are invited to join Children\'s Church. Parents, please accompany your child to the hall.')"><span class="a-type ann">Announcement</span><div class="alert-title">Children's Church</div><div class="alert-sub">Ages 3–10 · Proceed to hall</div></div>
+        <div class="alert-card" onclick="showAlert('Holy Communion','We will now observe Holy Communion. Examine yourselves before partaking. — 1 Corinthians 11:28')"><span class="a-type ann">Announcement</span><div class="alert-title">Holy Communion</div><div class="alert-sub">Examine yourselves · 1 Cor 11:28</div></div>
+        <div class="alert-card" onclick="showAlert('Benediction','The LORD bless thee, and keep thee: The LORD make his face shine upon thee, and be gracious unto thee. — Numbers 6:24-25')"><span class="a-type ann">Announcement</span><div class="alert-title">Benediction</div><div class="alert-sub">Numbers 6:24-25</div></div>
+        <div class="alert-card" onclick="showAlert('First Timer\'s Welcome','If this is your first time joining us, we are so glad you are here! Please fill out a visitor card at the welcome desk.')"><span class="a-type ann">Announcement</span><div class="alert-title">First Timers Welcome</div><div class="alert-sub">Visitor card at welcome desk</div></div>
+        <div class="alert-card" onclick="showAlert('Prayer Request','If you have a prayer request, write it on the prayer card at your seat and pass it to an usher.')"><span class="a-type ann">Announcement</span><div class="alert-title">Prayer Request</div><div class="alert-sub">Fill out prayer card</div></div>
+        <div class="alert-card" onclick="showAlert('⚠ Emergency Notice','Please remain calm and follow the emergency exit signs. Ushers will guide you safely out of the building.')"><span class="a-type urg">Alert</span><div class="alert-title">Emergency Notice</div><div class="alert-sub">Follow exit signs · Stay calm</div></div>
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">
+          <input class="sc-input" id="custom-alert-title" placeholder="Custom alert title…">
+          <textarea class="sc-input" id="custom-alert-body"
+            placeholder="Alert body text…"
+            style="height:48px;resize:none;line-height:1.5;"></textarea>
+          <button class="sc-add" style="width:100%;" onclick="sendCustomAlert()">→ Project Custom Alert</button>
+        </div>
+      </div>
+    </div>
+     <!-- Scripture Lookup -->
+    <div class="r-section">
+      <div class="panel-tag">Scripture Lookup — KJV</div>
+      <div class="sc-row" style="margin-top:5px;">
+        <input class="sc-input" id="sc-ref"
+          placeholder="e.g. John 3:16, Psalm 23:1-3"
+          onkeydown="if(event.key==='Enter')quickScriptureLookup()">
+        <button class="sc-add" onclick="quickScriptureLookup()">Lookup</button>
+      </div>
+      <div style="font-size:9px;color:var(--text-3);margin-top:4px;line-height:1.6;">
+        Fetches KJV text and queues for projection.
+      </div>
+    </div>
+
+    <!-- Spacer at bottom so last section isn't cut off -->
+    <div style="height:20px;flex-shrink:0;"></div>
+
+  </div><!-- .right-inner -->
+</aside>
+
+<!-- BOTTOM BAR -->
+<footer class="bottom">
+  <button class="nav-btn" onclick="prevSlide()">← Prev</button>
+  <div class="counter" id="ctr">— / —</div>
+  <button class="nav-btn" onclick="nextSlide()">Next →</button>
+  <div class="sep" style="margin:0 4px;"></div>
+  <button class="blank-btn"  id="blank-btn"  onclick="toggleBlank()">■ BLANK</button>
+  <button class="logo-btn"   id="logo-btn"   onclick="toggleLogo()">◈ LOGO</button>
+  <button class="freeze-btn" id="freeze-btn" onclick="toggleFreeze()" title="Hold current output (F)">❄ FREEZE</button>
+  <div class="sep" style="margin:0 4px;"></div>
+  <button class="loop-btn" id="loop-btn" onclick="toggleLoop()" title="Loop slides">↺ Loop</button>
+  <div class="auto-wrap">
+    <button class="auto-btn" id="auto-btn" onclick="toggleAutoAdvance()" title="Auto-advance">⏩ Auto</button>
+    <select class="auto-sel" id="auto-sel" onchange="setAutoInterval(this.value)">
+      <option value="" selected>None</option>
+      <option value="3">3s</option>
+      <option value="5">5s</option>
+      <option value="10">10s</option>
+      <option value="15">15s</option>
+      <option value="30">30s</option>
+      <option value="60">60s</option>
+    </select>
+  </div>
+  <div class="spacer"></div>
+  <div class="size-ctrl">
+    <span>Text</span>
+    <button class="sz-btn" onclick="resize(-2)">−</button>
+    <div class="sz-val" id="sz-val">26</div>
+    <button class="sz-btn" onclick="resize(2)">+</button>
+  </div>
+  <div class="ccli-wrap">
+    <span class="ccli-label">CCLI</span>
+    <input class="ccli-input" id="ccli-input" placeholder="License #" maxlength="10" oninput="updateCCLI()">
+  </div>
+</footer>
+
+</div><!-- .app -->
+
+<!-- ══════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════ -->
+
+<!-- SONG EDITOR -->
+<div class="modal-overlay" id="song-editor-modal" onclick="if(event.target===this)closeSongEditor()">
+  <div class="modal se-modal">
+    <div class="modal-head">
+      <div class="modal-title" id="se-modal-title">Add New Song</div>
+      <button class="modal-x" onclick="closeSongEditor()">✕</button>
+    </div>
+    <div class="se-meta-grid">
+      <input class="se-inp se-title-inp" id="se-title-inp" placeholder="Song Title *">
+      <input class="se-inp" id="se-author-inp" placeholder="Author / Composer">
+      <input class="se-inp" id="se-key-inp"    placeholder="Key (e.g. G, C#, Bb)">
+      <input class="se-inp" id="se-tempo-inp"  placeholder="Tempo (e.g. 76 BPM, Slow)">
+      <input class="se-inp" id="se-tag-inp"    placeholder="Tag (Classic Hymn, Contemporary…)">
+      <input class="se-inp" id="se-ccli-song-inp" placeholder="CCLI Song # (optional)">
+    </div>
+    <div class="se-slides-header">
+      <span class="panel-tag" style="margin:0;">Slides</span>
+      <div style="display:flex;gap:5px;">
+        <button class="se-add-slide-btn" onclick="addCommonSections()">+ Common Sections</button>
+        <button class="se-add-slide-btn" onclick="addEditorSlide()">+ Blank Slide</button>
+      </div>
+    </div>
+    <div class="se-slides-list" id="se-slides-list"></div>
+    <div class="modal-foot">
+      <button class="modal-btn-cancel" onclick="closeSongEditor()">Cancel</button>
+      <button class="modal-btn-cancel" style="border-color:var(--gold-dim);color:var(--gold);" onclick="previewSong()">👁 Preview</button>
+      <button class="modal-btn-save"   onclick="saveSong()">💾 Save Song</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM SLIDE -->
+<div class="modal-overlay" id="custom-modal" onclick="if(event.target===this)closeCustomModal()">
+  <div class="modal cs-modal">
+    <div class="modal-head">
+      <div class="modal-title">Custom / Announcement Slide</div>
+      <button class="modal-x" onclick="closeCustomModal()">✕</button>
+    </div>
+    <div class="cs-body">
+      <div class="cs-field">
+        <label class="cs-label">Section Label</label>
+        <input class="se-inp" id="cs-label" placeholder="e.g. ANNOUNCEMENT, INTRO, NOTE…">
+      </div>
+      <div class="cs-field">
+        <label class="cs-label">Slide Content</label>
+        <textarea class="cs-textarea" id="cs-text" placeholder="Type your content here…&#10;&#10;Leave a blank line to split into multiple slides."></textarea>
+      </div>
+      <div class="cs-field">
+        <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-2);cursor:pointer;">
+          <input type="checkbox" id="cs-split"> Split on blank lines (each paragraph = separate slide)
+        </label>
+      </div>
+      <div class="cs-options">
+        <label class="cs-opt"><input type="radio" name="cs-mode" value="replace" checked> Replace current queue</label>
+        <label class="cs-opt"><input type="radio" name="cs-mode" value="append">  Append to queue</label>
+        <label class="cs-opt"><input type="radio" name="cs-mode" value="insert">  Insert after current</label>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="modal-btn-cancel" onclick="closeCustomModal()">Cancel</button>
+      <button class="modal-btn-save"   onclick="saveCustomSlide()">Project Now →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRESENTATION EDITOR -->
+<div class="modal-overlay" id="pres-modal" onclick="if(event.target===this)closePresModal()">
+  <div class="modal se-modal">
+    <div class="modal-head">
+      <div class="modal-title" id="pres-modal-title">New Presentation</div>
+      <button class="modal-x" onclick="closePresModal()">✕</button>
+    </div>
+    <div class="se-meta-grid">
+      <input class="se-inp se-title-inp" id="pres-title-inp" placeholder="Presentation Title *">
+      <input class="se-inp" id="pres-author-inp" placeholder="Author / Speaker">
+    </div>
+    <div class="se-slides-header">
+      <span class="panel-tag" style="margin:0;">Slides</span>
+      <button class="se-add-slide-btn" onclick="addPresSlide()">+ Add Slide</button>
+    </div>
+    <div class="se-slides-list" id="pres-slides-list"></div>
+    <div class="modal-foot">
+      <button class="modal-btn-cancel" onclick="closePresModal()">Cancel</button>
+      <button class="modal-btn-save"   onclick="savePresentation()">💾 Save Presentation</button>
+    </div>
+  </div>
+</div>
+
+<!-- NDI SETTINGS -->
+<div class="modal-overlay" id="ndi-modal" onclick="if(event.target===this)closeNDISettings()">
+  <div class="modal" style="width:480px;">
+    <div class="modal-head">
+      <div class="modal-title">📡 NDI Output Settings</div>
+      <button class="modal-x" onclick="closeNDISettings()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-row">
+        <div class="modal-label">NDI Source Name</div>
+        <input class="modal-input" id="ndi-name" value="BrideWorship Pro" placeholder="Source name visible on network">
+      </div>
+      <div class="modal-row">
+        <div class="modal-label">Output Resolution</div>
+        <select class="modal-input" id="ndi-res">
+          <option value="1920x1080" selected>1920×1080 (Full HD)</option>
+          <option value="1280x720">1280×720 (HD)</option>
+          <option value="3840x2160">3840×2160 (4K UHD)</option>
+          <option value="1024x768">1024×768 (XGA)</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <div class="modal-label">Frame Rate</div>
+        <select class="modal-input" id="ndi-fps">
+          <option value="60">60 fps</option>
+          <option value="30" selected>30 fps</option>
+          <option value="25">25 fps (PAL)</option>
+          <option value="24">24 fps (Cinema)</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <div class="modal-label">Alpha Channel</div>
+        <select class="modal-input" id="ndi-alpha">
+          <option value="no" selected>No (RGB — standard projection)</option>
+          <option value="yes">Yes (RGBA — transparent overlays)</option>
+        </select>
+      </div>
+      <div class="modal-row">
+        <div class="modal-label">NDI Group</div>
+        <input class="modal-input" id="ndi-group" value="public" placeholder="NDI group (default: public)">
+      </div>
+      <div style="background:rgba(74,144,217,.08);border:1px solid rgba(74,144,217,.2);border-radius:5px;padding:10px 13px;font-size:11px;color:var(--text-3);line-height:1.7;">
+        <strong style="color:var(--blue);">ℹ NDI Note:</strong> NDI output requires NewTek NDI Tools installed on your system. BrideWorship Pro broadcasts as an NDI source visible to OBS, vMix, Wirecast, and other NDI-compatible apps on your local network.
+      </div>
+      <div class="modal-row" style="margin-top:12px;">
+        <div class="modal-label">NDI Status</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:var(--text-3);transition:background .3s;" id="ndi-status-dot"></div>
+          <span style="font-size:12px;color:var(--text-3);" id="ndi-status-label">Not broadcasting</span>
+          <button class="sc-add" onclick="toggleNDI()" id="ndi-toggle-btn" style="margin-left:auto;">Start NDI</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="modal-btn-cancel" onclick="closeNDISettings()">Close</button>
+      <button class="modal-btn-save"   onclick="saveNDISettings()">💾 Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP SETTINGS -->
+<div class="modal-overlay" id="settings-modal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal" style="width:500px;">
+    <div class="modal-head">
+      <div class="modal-title">⚙ Application Settings</div>
+      <button class="modal-x" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-section-label">General</div>
+      <div class="modal-row"><label class="settings-toggle-row">Show CCLI License on Slides<label class="toggle-sw"><input type="checkbox" id="s-show-ccli" checked><div class="toggle-track"></div></label></label></div>
+      <div class="modal-row"><label class="settings-toggle-row">Show Song Title on Slides<label class="toggle-sw"><input type="checkbox" id="s-show-title" checked><div class="toggle-track"></div></label></label></div>
+      <div class="modal-row"><label class="settings-toggle-row">Show Section Label in Footer<label class="toggle-sw"><input type="checkbox" id="s-show-section" checked><div class="toggle-track"></div></label></label></div>
+      <div class="modal-row"><label class="settings-toggle-row">Confirm before Going LIVE<label class="toggle-sw"><input type="checkbox" id="s-confirm-live"><div class="toggle-track"></div></label></label></div>
+      <div class="modal-row"><label class="settings-toggle-row">Auto-save Service Order<label class="toggle-sw"><input type="checkbox" id="s-auto-save" checked><div class="toggle-track"></div></label></label></div>
+      <div class="settings-section-label" style="margin-top:14px;">Display</div>
+      <div class="modal-row">
+        <div class="modal-label">Church / Organization Name</div>
+        <input class="modal-input" id="s-church-name" placeholder="e.g. Grace Community Church">
+      </div>
+      <div class="modal-row">
+        <div class="modal-label">Logo Slide Text</div>
+        <input class="modal-input" id="s-logo-text" value="Bride Worship">
+      </div>
+      <div class="modal-row">
+        <div class="modal-label">Default Bible Version</div>
+        <select class="modal-input" id="s-bible-ver">
+          <option value="NIV">NIV</option><option value="KJV">KJV</option>
+          <option value="ESV">ESV</option><option value="NKJV">NKJV</option>
+          <option value="NLT">NLT</option>
+        </select>
+      </div>
+      <div class="settings-section-label" style="margin-top:14px;color:var(--red);">Danger Zone</div>
+      <button class="modal-btn-cancel" style="border-color:rgba(224,80,80,.4);color:var(--red);width:100%;" onclick="if(confirm('Reset ALL song data to defaults?'))resetAllData()">⚠ Reset All Song Data</button>
+    </div>
+    <div class="modal-foot">
+      <button class="modal-btn-cancel" onclick="closeSettings()">Cancel</button>
+      <button class="modal-btn-save"   onclick="saveSettings()">💾 Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOTKEYS -->
+<div class="modal-overlay" id="hotkeys-modal" onclick="if(event.target===this)closeHotkeys()">
+  <div class="modal" style="width:430px;">
+    <div class="modal-head">
+      <div class="modal-title">⌨ Keyboard Shortcuts</div>
+      <button class="modal-x" onclick="closeHotkeys()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0;">
+      <table class="hotkey-table">
+        <thead><tr><th>Key</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><kbd>→</kbd> <kbd>Space</kbd></td><td>Next slide</td></tr>
+          <tr><td><kbd>←</kbd></td><td>Previous slide</td></tr>
+          <tr><td><kbd>↑</kbd> <kbd>↓</kbd></td><td>Prev / Next slide</td></tr>
+          <tr><td><kbd>1</kbd> – <kbd>9</kbd></td><td>Jump to slide number</td></tr>
+          <tr><td><kbd>B</kbd></td><td>Blank / Unblank screen</td></tr>
+          <tr><td><kbd>F</kbd></td><td>Freeze / Unfreeze output</td></tr>
+          <tr><td><kbd>L</kbd></td><td>Toggle Live / Offline</td></tr>
+          <tr><td><kbd>G</kbd></td><td>Toggle Logo slide</td></tr>
+          <tr><td><kbd>T</kbd></td><td>Start / Pause timer</td></tr>
+          <tr><td><kbd>R</kbd></td><td>Reset timer</td></tr>
+          <tr><td><kbd>+</kbd> <kbd>=</kbd></td><td>Increase text size</td></tr>
+          <tr><td><kbd>−</kbd></td><td>Decrease text size</td></tr>
+          <tr><td><kbd>Ctrl</kbd> + <kbd>K</kbd></td><td>Scripture Lookup</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Close modal / Blank screen</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-foot">
+      <button class="modal-btn-save" onclick="closeHotkeys()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden file inputs -->
+<input type="file" id="import-file-input"  accept=".json,.bwsongs" style="display:none;" onchange="handleImport(event)">
+<input type="file" id="import-pres-input"  accept=".json,.bwpres"  style="display:none;" onchange="handlePresImport(event)">
+<input type="file" id="import-media-input" accept="image/*,video/*" style="display:none;" onchange="handleMediaImport(event)">
+
+<!-- ══════════════════════════════════════
+     DATABASE IMPORT / EXPORT MODAL
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="db-modal" onclick="if(event.target===this)closeDBModal()">
+  <div class="modal db-modal-box">
+    <div class="modal-head">
+      <div class="modal-title">🗄 Song Database — Import / Export</div>
+      <button class="modal-x" onclick="closeDBModal()">✕</button>
+    </div>
+
+    <!-- DB Tab Bar -->
+    <div class="db-tabs-bar">
+      <div class="db-tab on" onclick="dbTab(this,'db-import-panel')">⬇ Import Songs</div>
+      <div class="db-tab"    onclick="dbTab(this,'db-export-panel')">⬆ Export Songs</div>
+    </div>
+
+    <!-- ── IMPORT PANEL ── -->
+    <div class="db-panel" id="db-import-panel">
+      <div class="modal-body db-scroll">
+
+        <!-- Drop Zone -->
+        <div class="drop-zone" id="drop-zone"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="event.preventDefault();this.classList.remove('drag-over');handleDroppedFile(event)">
+          <div class="dz-icon">📂</div>
+          <div class="dz-text">Drop your song database file here</div>
+          <div class="dz-sub">or</div>
+          <button class="sc-add" onclick="document.getElementById('db-file-input').click()" style="padding:6px 18px;">Browse File</button>
+          <input type="file" id="db-file-input" style="display:none;"
+            accept=".json,.xml,.pro6,.pro6x,.txt,.csv,.cho,.chordpro,.ewsx,.ews,.usr,.bwsongs"
+            onchange="handleDBFile(event)">
+        </div>
+
+        <!-- Supported formats matrix -->
+        <div class="format-matrix">
+          <div class="fmt-matrix-head">Supported Import Formats</div>
+          <div class="fmt-matrix-grid">
+            <div class="fmg-item"><span class="fmg-ext">.json</span><span class="fmg-name">BrideWorship Native</span></div>
+            <div class="fmg-item"><span class="fmg-ext">.pro6</span><span class="fmg-name">ProPresenter 6</span></div>
+            <div class="fmg-item"><span class="fmg-ext">.xml</span><span class="fmg-name">OpenLyrics / EasyWorship XML</span></div>
+            <div class="fmg-item"><span class="fmg-ext">.txt</span><span class="fmg-name">Plain Text [Sections]</span></div>
+            <div class="fmg-item"><span class="fmg-ext">.csv</span><span class="fmg-name">CSV Spreadsheet</span></div>
+            <div class="fmg-item"><span class="fmg-ext">.cho</span><span class="fmg-name">ChordPro (lyrics extracted)</span></div>
+            <div class="fmg-item"><span class="fmg-ext">.ewsx</span><span class="fmg-name">EasyWorship Database</span></div>
+            <div class="fmg-item"><span class="fmg-ext">.usr</span><span class="fmg-name">SongSelect / CCLI Text</span></div>
+          </div>
+        </div>
+
+        <!-- Status bar -->
+        <div id="db-import-status" style="font-size:11px;color:var(--text-2);padding:5px 0;min-height:20px;"></div>
+
+        <!-- Duplicate policy -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+          <span style="font-size:11px;color:var(--text-3);white-space:nowrap;">Duplicates:</span>
+          <select class="fmt-select" id="db-dupe-mode" style="flex:1;min-width:160px;">
+            <option value="skip">Skip (keep existing song)</option>
+            <option value="replace">Replace existing with imported</option>
+            <option value="add">Add anyway (allow duplicates)</option>
+          </select>
+          <span id="db-import-count" style="font-size:10px;color:var(--gold);white-space:nowrap;"></span>
+        </div>
+
+        <!-- Preview header -->
+        <div class="db-preview-header">
+          <span style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;">Song Preview</span>
+          <div style="display:flex;gap:5px;">
+            <button class="lib-icon-btn" onclick="selectAllImport(true)">Select All</button>
+            <button class="lib-icon-btn" onclick="selectAllImport(false)">Deselect All</button>
+          </div>
+        </div>
+
+        <!-- Preview list -->
+        <div id="db-preview" class="db-preview-list">
+          <div style="color:var(--text-3);font-size:11px;padding:14px;text-align:center;">No songs loaded yet — select a file above.</div>
+        </div>
+
+      </div><!-- .modal-body -->
+      <div class="modal-foot">
+        <button class="modal-btn-cancel" onclick="closeDBModal()">Cancel</button>
+        <button class="modal-btn-save"   onclick="confirmImport()">⬇ Import Selected Songs</button>
+      </div>
+    </div><!-- #db-import-panel -->
+
+    <!-- ── EXPORT PANEL ── -->
+    <div class="db-panel" id="db-export-panel" style="display:none;">
+      <div class="modal-body db-scroll">
+
+        <div class="modal-row">
+          <div class="modal-label">Export Format</div>
+          <select class="modal-input" id="export-format" onchange="updateExportHint()">
+            <option value="json">BrideWorship JSON (.json) — Native format, full backup</option>
+            <option value="openlyrics">OpenLyrics XML (.xml) — OpenLP, EasyWorship, MediaShout</option>
+            <option value="pro6">ProPresenter 6 (.pro6) — One file per song</option>
+            <option value="csv">CSV Spreadsheet (.csv) — Excel / Google Sheets</option>
+            <option value="txt">Plain Text (.txt) — Universal / printable</option>
+            <option value="chordpro">ChordPro (.cho) — OnSong, chord chart apps</option>
+          </select>
+        </div>
+
+        <div class="modal-row">
+          <div class="modal-label">Which Songs to Export</div>
+          <select class="modal-input" id="export-which">
+            <option value="all">All songs in library</option>
+            <option value="current">Currently selected song only</option>
+          </select>
+        </div>
+
+        <!-- Dynamic hint -->
+        <div id="export-hint" class="export-hint-box">Select a format above to see compatibility details.</div>
+
+        <!-- Compatibility table -->
+        <div style="margin-top:16px;">
+          <div class="modal-label" style="margin-bottom:8px;">Compatibility Guide</div>
+          <table class="db-compat-table">
+            <thead>
+              <tr>
+                <th>Format</th>
+                <th>Compatible Software</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td style="color:var(--gold);">JSON</td><td>BrideWorship Pro — backup &amp; reimport</td></tr>
+              <tr><td style="color:var(--blue);">OpenLyrics XML</td><td>OpenLP · EasyWorship 7 · MediaShout · Quelea · SongSelect</td></tr>
+              <tr><td style="color:var(--amber);">ProPresenter 6</td><td>ProPresenter 6 &amp; 7 (can open .pro6 files directly)</td></tr>
+              <tr><td style="color:var(--green);">CSV</td><td>Microsoft Excel · Google Sheets · LibreOffice Calc</td></tr>
+              <tr><td style="color:var(--text-2);">Plain Text</td><td>Any text editor · Printing · Email sharing</td></tr>
+              <tr><td style="color:var(--text-2);">ChordPro</td><td>OnSong · ChordU · Songsheet Generator · GuitarPro</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Notes -->
+        <div class="db-info-box" style="border-color:rgba(212,160,23,.25);background:rgba(212,160,23,.05);margin-top:12px;">
+          <strong style="color:var(--amber);">⚠ ProPresenter 7:</strong> PP7 uses a binary format (.pro) that cannot be generated in a browser.
+          Export as <strong>ProPresenter 6 (.pro6)</strong> — ProPresenter 7 opens .pro6 files natively via <em>File → Import</em>.
+        </div>
+        <div class="db-info-box" style="border-color:rgba(74,144,217,.25);background:rgba(74,144,217,.05);margin-top:8px;">
+          <strong style="color:var(--blue);">ℹ EasyWorship:</strong> Import into EasyWorship 7 via
+          <em>File → Import → OpenLyrics</em>. Use the <strong>OpenLyrics XML</strong> export.
+        </div>
+        <div class="db-info-box" style="border-color:rgba(76,175,122,.25);background:rgba(76,175,122,.05);margin-top:8px;">
+          <strong style="color:var(--green);">ℹ OpenLP:</strong> Import via <em>Songs → Import → OpenLyrics</em>.
+          OpenLyrics XML is the recommended format.
+        </div>
+
+      </div><!-- .modal-body -->
+      <div class="modal-foot">
+        <button class="modal-btn-cancel" onclick="closeDBModal()">Cancel</button>
+        <button class="modal-btn-save"   onclick="exportDatabase()">⬆ Download Export File</button>
+      </div>
+    </div><!-- #db-export-panel -->
+
+  </div><!-- .modal -->
+</div><!-- #db-modal -->
+
+    
+<!-- ══════════════════════════════════════
+     THE TABLE — BRANHAM.ORG INTEGRATION
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="table-modal" onclick="if(event.target===this)closeTheTable()">
+  <div class="modal table-modal-box">
+    <div class="modal-head">
+      <div class="modal-title" style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:18px;">📖</span>
+        <span>The Table — Branham.org</span>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="proj-btn" onclick="reloadTableFrame()" title="Reload">↺ Reload</button>
+        <button class="proj-btn" onclick="openTableExternal()" title="Open in browser tab">⬡ Open Tab</button>
+        <button class="modal-x" onclick="closeTheTable()">✕</button>
+      </div>
+    </div>
+
+    <!-- Sub-tabs -->
+   <div class="db-tabs-bar">
+      <div class="db-tab on"  onclick="tableTab(this,'tt-browser')">🌐 Browse Sermons</div>
+      <div class="db-tab"     onclick="tableTab(this,'tt-queue')">📋 Add to Queue</div>
+      <div class="db-tab"     onclick="tableTab(this,'tt-reader')">📚 Built-in Reader</div>
+      <div class="db-tab"     onclick="tableTab(this,'tt-download');initTableDownload()">⬇ Install The Table</div>
+    </div>
+
+    <!-- Browser panel -->
+    <div class="table-panel" id="tt-browser">
+      <div class="table-toolbar">
+        <input class="sc-input" id="table-url-bar" value="https://branham.org/en/sermons"
+          style="flex:1;" onkeydown="if(event.key==='Enter')navigateTableFrame(this.value)">
+        <button class="sc-add" onclick="navigateTableFrame(document.getElementById('table-url-bar').value)">Go</button>
+      </div>
+      <div class="table-frame-wrap">
+        <iframe id="table-iframe"
+          src="https://branham.org/en/sermons"
+          title="The Table — Branham.org"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+          referrerpolicy="no-referrer-when-downgrade"
+          loading="lazy">
+        </iframe>
+        <!-- Fallback if iframe blocked -->
+        <div class="table-iframe-fallback" id="table-fallback">
+          <div class="tf-icon">📖</div>
+          <div class="tf-title">The Table — Branham.org</div>
+          <div class="tf-sub">The sermon browser could not load in the embedded panel (the site may block iframes).</div>
+          <div class="tf-sub" style="margin-top:6px;">Use the buttons below to open in a browser tab, or type sermon text directly in "Add to Queue".</div>
+          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;justify-content:center;">
+            <button class="sc-add" style="padding:8px 18px;" onclick="openTableExternal()">Open branham.org in Browser Tab</button>
+            <button class="sc-add" style="padding:8px 18px;background:var(--gold-dim);" onclick="tableTab(document.querySelectorAll('.db-tab')[1],'tt-queue')">Add Sermon Text Manually →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Queue panel -->
+    <div class="table-panel" id="tt-queue" style="display:none;">
+      <div class="modal-body db-scroll">
+
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:10px;line-height:1.7;">
+          Paste or type sermon / message text below. BrideWorship will split it into projection slides automatically.
+        </div>
+
+        <div class="modal-row">
+          <div class="modal-label">Sermon / Message Title</div>
+          <input class="modal-input" id="table-sermon-title" placeholder="e.g. Broken Cisterns — 58-0202">
+        </div>
+
+        <div class="modal-row">
+          <div class="modal-label">Speaker / Author</div>
+          <input class="modal-input" id="table-sermon-author" value="William Branham" placeholder="Speaker name">
+        </div>
+
+        <div class="modal-row">
+          <div class="modal-label">Sermon Text <span style="color:var(--text-3);font-weight:400;">(paste from The Table or type freely)</span></div>
+          <textarea class="modal-input" id="table-sermon-text"
+            style="min-height:170px;resize:vertical;line-height:1.8;font-size:12px;"
+            placeholder="Paste the sermon or message text here…&#10;&#10;Leave blank lines between paragraphs to split into separate slides.&#10;&#10;Or use [Section Label] markers:&#10;[Opening]&#10;Your text here&#10;&#10;[Main Point]&#10;More text here"></textarea>
+        </div>
+
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:10px;">
+          <div style="flex:1;min-width:160px;">
+            <div class="modal-label" style="margin-bottom:4px;">Slide Split Mode</div>
+            <select class="modal-input" id="table-split-mode" style="padding:6px 8px;">
+              <option value="paragraph">Split on blank lines</option>
+              <option value="paragraph">Split on paragraphs</option>
+              <option value="paragraph">Split on numbers</option>
+              <option value="sentence">Every 2 sentences</option>
+              <option value="manual">[Section] markers only</option>
+            </select>
+          </div>
+          <div style="flex:1;min-width:130px;">
+            <div class="modal-label" style="margin-bottom:4px;">Max Lines Per Slide</div>
+            <select class="modal-input" id="table-lines-per-slide" style="padding:6px 8px;">
+              <option value="2">2 lines</option>
+              <option value="3" selected>3 lines</option>
+              <option value="4">4 lines</option>
+              <option value="6">6 lines</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ── PRIMARY ACTION BUTTONS — always visible ── -->
+        <div class="queue-action-bar">
+          <button class="queue-action-btn queue-project-btn" onclick="projectTableSermon()">
+            <span class="qab-icon">▶</span>
+            <span class="qab-label">Project Now</span>
+            <span class="qab-sub">Send to live screen</span>
+          </button>
+          <button class="queue-action-btn queue-so-btn" onclick="addTableToServiceOrder()">
+            <span class="qab-icon">📋</span>
+            <span class="qab-label">Add to Service Order</span>
+            <span class="qab-sub">Queue for later</span>
+          </button>
+          <button class="queue-action-btn queue-clear-btn" onclick="clearTableQueue()">
+            <span class="qab-icon">✕</span>
+            <span class="qab-label">Clear</span>
+            <span class="qab-sub">Reset text fields</span>
+          </button>
+        </div>
+
+        <!-- Slide preview count — updates as user types -->
+        <div id="queue-slide-preview-count" style="text-align:center;font-size:10px;color:var(--text-3);margin-bottom:12px;min-height:16px;"></div>
+
+        <!-- Quick verse buttons -->
+        <div class="modal-label" style="margin-bottom:6px;">Quick Add Common Quotes</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">
+          <div class="qbtn" onclick="appendTableQuote('only_believe')">🎵 Only Believe</div>
+          <div class="qbtn" onclick="appendTableQuote('acts_26_19')">📖 Acts 26:19</div>
+          <div class="qbtn" onclick="appendTableQuote('heb_13_8')">📖 Heb 13:8</div>
+          <div class="qbtn" onclick="appendTableQuote('matt_28_6')">📖 Matt 28:6</div>
+          <div class="qbtn" onclick="appendTableQuote('john_3_16')">📖 John 3:16</div>
+          <div class="qbtn" onclick="appendTableQuote('mark_9_23')">📖 Mark 9:23</div>
+          <div class="qbtn" onclick="appendTableQuote('isa_53_4')">📖 Isa 53:4</div>
+          <div class="qbtn" onclick="appendTableQuote('eph_4_30')">📖 Eph 4:30</div>
+        </div>
+
+      </div><!-- .modal-body -->
+    </div><!-- #tt-queue -->
+
+    <!-- Built-in Reader panel -->
+    <div class="table-panel" id="tt-reader" style="display:none;">
+      <div class="modal-body db-scroll">
+
+        <!-- Search bar -->
+        <div style="display:flex;gap:5px;margin-bottom:10px;">
+          <input class="sc-input" id="reader-search" placeholder="Search sermon title, date or scripture… e.g. John 3:16"
+            style="flex:1;" onkeydown="if(event.key==='Enter')searchBuiltinSermons()">
+          <button class="sc-add" onclick="searchBuiltinSermons()">Search</button>
+          <button class="sc-add" style="background:var(--bg-card);border:1px solid var(--border-dim);color:var(--text-2);"
+            onclick="loadFeaturedSermons()">Featured</button>
+        </div>
+
+        <!-- Filter row -->
+        <div style="display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;">
+          <select class="fmt-select" id="reader-year" style="flex:1;min-width:90px;">
+            <option value="">All Years</option>
+          </select>
+          <select class="fmt-select" id="reader-book" style="flex:1;min-width:120px;">
+            <option value="">All Topics</option>
+            <option value="faith">Faith</option>
+            <option value="healing">Healing</option>
+            <option value="holy spirit">Holy Spirit</option>
+            <option value="prayer">Prayer</option>
+            <option value="resurrection">Resurrection</option>
+            <option value="grace">Grace</option>
+          </select>
+        </div>
+
+        <!-- Results list -->
+        <div id="reader-results" class="db-preview-list" style="max-height:180px;">
+          <div style="color:var(--text-3);font-size:11px;padding:14px;text-align:center;">
+            Search above or click <strong>Featured</strong> to browse sermons.
+          </div>
+        </div>
+
+        <!-- Selected sermon viewer -->
+        <div id="reader-viewer" style="display:none;margin-top:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;flex-wrap:wrap;gap:5px;">
+            <div id="reader-sermon-title"
+              style="font-family:'Cinzel',serif;font-size:12px;color:var(--gold);letter-spacing:1px;"></div>
+            <div style="display:flex;gap:5px;">
+              <button class="lib-icon-btn" onclick="selectAllReaderText()">Select All</button>
+              <button class="sc-add" onclick="projectSelectedReaderText()"
+                style="padding:4px 10px;font-size:11px;">▶ Project Selected</button>
+              <button class="sc-add" onclick="projectFullReaderSermon()"
+                style="padding:4px 10px;font-size:11px;background:var(--gold-dim);">▶ Project All</button>
+            </div>
+          </div>
+          <textarea id="reader-content" class="modal-input"
+            style="height:160px;resize:vertical;font-size:12px;line-height:1.8;font-family:'Lato',sans-serif;"
+            placeholder="Sermon content will appear here…"></textarea>
+          <div style="font-size:10px;color:var(--text-3);margin-top:4px;">
+            💡 Select any portion of text above and click <strong>Project Selected</strong>, or project the whole sermon.
+          </div>
+        </div>
+
+      </div><!-- .modal-body -->
+      <div class="modal-foot">
+        <button class="modal-btn-cancel" onclick="closeTheTable()">Close</button>
+        <button class="modal-btn-save" onclick="sendReaderToQueue()">→ Send to Add-to-Queue Tab</button>
+      </div>
+    </div><!-- #tt-reader -->
+    
+    <!-- Download panel -->
+    <div class="table-panel" id="tt-download" style="display:none;">
+      <div class="modal-body db-scroll">
+
+        <!-- OS Detector Hero -->
+        <div class="table-download-hero">
+          <div class="tdh-icon" id="td-os-icon">💻</div>
+          <div class="tdh-title">The Table — Built into BrideWorship Pro</div>
+          <div class="tdh-sub" id="td-os-sub">Detecting your platform…</div>
+
+          <!-- Download progress area -->
+          <div id="td-progress-wrap" style="display:none;width:100%;margin-top:16px;">
+            <div class="td-prog-bar-track">
+              <div class="td-prog-bar-fill" id="td-prog-fill"></div>
+            </div>
+            <div class="td-prog-label" id="td-prog-label">Preparing download…</div>
+          </div>
+
+          <!-- Main action buttons — shown after OS detect -->
+          <div id="td-action-area" style="margin-top:16px;display:flex;flex-direction:column;gap:8px;align-items:center;">
+            <button class="modal-btn-save" id="td-download-btn"
+              style="padding:11px 32px;font-size:13px;min-width:240px;"
+              onclick="startTableDownload()">
+              ⬇ Download &amp; Install The Table
+            </button>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;" id="td-alt-platforms">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Installed confirmation -->
+        <div id="td-installed-banner" style="display:none;"
+          class="import-success" style="text-align:center;padding:12px 16px;">
+          ✓ The Table is downloaded! Follow the installation steps below.
+        </div>
+
+        <!-- Step-by-step install guide -->
+        <div class="modal-label" style="margin-bottom:8px;margin-top:4px;">Installation Guide</div>
+        <div class="table-steps" id="td-steps">
+          <!-- Filled by JS based on OS -->
+        </div>
+
+        <!-- In-app usage guide -->
+        <div class="modal-label" style="margin-bottom:8px;margin-top:16px;">Using The Table Inside BrideWorship</div>
+        <div class="table-steps">
+          <div class="ts-item">
+            <div class="ts-num">A</div>
+            <div class="ts-text">After installing The Table, open it alongside BrideWorship Pro using <strong>Window Snap</strong> (Windows <kbd>Win+←/→</kbd>) or <strong>Split View</strong> (Mac).</div>
+          </div>
+          <div class="ts-item">
+            <div class="ts-num">B</div>
+            <div class="ts-text">Search any sermon in The Table. Select and copy the quote you want (<kbd>Ctrl+C</kbd> / <kbd>⌘C</kbd>).</div>
+          </div>
+          <div class="ts-item">
+            <div class="ts-num">C</div>
+            <div class="ts-text">Click <strong>"Add to Queue"</strong> tab here in BrideWorship → paste the text → choose slide-split mode → <strong>Project Now</strong>.</div>
+          </div>
+          <div class="ts-item">
+            <div class="ts-num">D</div>
+            <div class="ts-text">Or use the <strong>Built-in Sermon Reader</strong> tab — browse and project directly without switching apps.</div>
+          </div>
+        </div>
+
+        <div class="db-info-box" style="border-color:rgba(201,168,76,.25);background:rgba(201,168,76,.04);margin-top:14px;">
+          <strong style="color:var(--gold);">💡 No install needed:</strong> Use the
+          <strong>Browse Sermons</strong> tab above to access branham.org directly inside BrideWorship Pro,
+          or the <strong>Built-in Reader</strong> tab to paste and project sermon quotes without The Table app.
+        </div>
+
+      </div><!-- .modal-body -->
+      <div class="modal-foot">
+        <button class="modal-btn-cancel" onclick="closeTheTable()">Close</button>
+        <button class="modal-btn-save" onclick="tableTab(document.querySelectorAll('#table-modal .db-tab')[0],'tt-browser')">
+          → Browse Sermons Now
+        </button>
+      </div>
+    </div><!-- #tt-download -->
+  </div>
+</div>
+    <!-- ══════════════════════════════════════
+     TEMPLATES MODAL
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="templates-modal" onclick="if(event.target===this)closeTemplates()">
+  <div class="modal tmpl-modal">
+    <div class="modal-head">
+      <div class="modal-title">🎨 Slide Templates</div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="sch-btn" onclick="openTemplateEditor(-1)">+ New Template</button>
+        <button class="modal-x" onclick="closeTemplates()">✕</button>
+      </div>
+    </div>
+
+    <!-- Template tabs -->
+    <div class="db-tabs-bar">
+      <div class="db-tab on" onclick="tmplTab(this,'tmpl-presets-panel')">⭐ Presets</div>
+      <div class="db-tab"    onclick="tmplTab(this,'tmpl-custom-panel')">✦ My Templates</div>
+      <div class="db-tab"    onclick="tmplTab(this,'tmpl-editor-panel')">🔧 Editor</div>
+    </div>
+
+    <!-- PRESETS -->
+    <div class="tmpl-panel" id="tmpl-presets-panel">
+      <div class="modal-body db-scroll">
+        <div class="tmpl-grid" id="tmpl-preset-grid"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="modal-btn-cancel" onclick="closeTemplates()">Close</button>
+        <button class="modal-btn-save" onclick="applySelectedTemplate()">✓ Apply Template</button>
+      </div>
+    </div>
+
+    <!-- CUSTOM -->
+    <div class="tmpl-panel" id="tmpl-custom-panel" style="display:none;">
+      <div class="modal-body db-scroll">
+        <div id="tmpl-custom-grid" class="tmpl-grid">
+          <div style="color:var(--text-3);font-size:11px;padding:16px;text-align:center;grid-column:1/-1;">
+            No custom templates yet.<br>Create one in the Editor tab.
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="modal-btn-cancel" onclick="closeTemplates()">Close</button>
+        <button class="modal-btn-save" onclick="applySelectedTemplate()">✓ Apply Template</button>
+      </div>
+    </div>
+
+    <!-- EDITOR -->
+    <div class="tmpl-panel" id="tmpl-editor-panel" style="display:none;">
+      <div class="modal-body db-scroll">
+
+        <div class="modal-row">
+          <div class="modal-label">Template Name</div>
+          <input class="modal-input" id="tmpl-edit-name" placeholder="My Custom Template">
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+
+          <!-- Left column -->
+          <div>
+            <div class="modal-label" style="margin-bottom:8px;">Background</div>
+
+            <div class="modal-row">
+              <div class="modal-label" style="font-size:9px;">Type</div>
+              <select class="modal-input" id="tmpl-bg-type" onchange="onTmplBgTypeChange()" style="padding:5px 8px;">
+                <option value="gradient">Gradient</option>
+                <option value="solid">Solid Color</option>
+                <option value="image">Image URL</option>
+                <option value="video">Video URL</option>
+              </select>
+            </div>
+
+            <div id="tmpl-bg-gradient-row" class="modal-row">
+              <div class="modal-label" style="font-size:9px;">Gradient</div>
+              <select class="modal-input" id="tmpl-bg-preset" style="padding:5px 8px;" onchange="onTmplBgPresetChange()">
+                <option value="cosmic">Dark Cosmic (Default)</option>
+                <option value="black">Solid Black</option>
+                <option value="deepblue">Deep Blue</option>
+                <option value="crimson">Crimson</option>
+                <option value="forest">Forest</option>
+                <option value="gold">Royal Gold</option>
+                <option value="slate">Slate Blue</option>
+                <option value="white">Pure White</option>
+                <option value="purple">Deep Purple</option>
+                <option value="teal">Dark Teal</option>
+                <option value="custom">Custom Gradient…</option>
+              </select>
+            </div>
+
+            <div id="tmpl-bg-custom-row" class="modal-row" style="display:none;">
+              <div class="modal-label" style="font-size:9px;">Custom CSS Background</div>
+              <input class="modal-input" id="tmpl-bg-custom"
+                placeholder="e.g. linear-gradient(135deg,#1a0830,#08051a)"
+                style="font-family:monospace;font-size:11px;" oninput="previewTemplate()">
+            </div>
+
+            <div id="tmpl-bg-solid-row" class="modal-row" style="display:none;">
+              <div class="modal-label" style="font-size:9px;">Color</div>
+              <input type="color" class="modal-input" id="tmpl-bg-color" value="#08051a"
+                style="height:34px;cursor:pointer;" oninput="previewTemplate()">
+            </div>
+
+            <div id="tmpl-bg-url-row" class="modal-row" style="display:none;">
+              <div class="modal-label" style="font-size:9px;">URL</div>
+              <input class="modal-input" id="tmpl-bg-url"
+                placeholder="https://…" oninput="previewTemplate()">
+            </div>
+
+            <div class="modal-label" style="margin-bottom:8px;margin-top:12px;">Decorations</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <label style="font-size:11px;color:var(--text-2);display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="checkbox" id="tmpl-deco-grid" checked onchange="previewTemplate()"> Grid Lines
+              </label>
+              <label style="font-size:11px;color:var(--text-2);display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="checkbox" id="tmpl-deco-corners" checked onchange="previewTemplate()"> Corner Marks
+              </label>
+              <label style="font-size:11px;color:var(--text-2);display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="checkbox" id="tmpl-deco-footer" checked onchange="previewTemplate()"> Footer Bar
+              </label>
+              <label style="font-size:11px;color:var(--text-2);display:flex;align-items:center;gap:6px;cursor:pointer;">
+                <input type="checkbox" id="tmpl-deco-vignette" onchange="previewTemplate()"> Vignette Overlay
+              </label>
+            </div>
+
+            <div class="modal-label" style="margin-bottom:8px;margin-top:12px;">Overlay / Watermark</div>
+            <div style="display:flex;gap:6px;margin-bottom:5px;">
+              <input class="modal-input" id="tmpl-watermark-text"
+                placeholder="e.g. ✦ Church Name" style="flex:1;font-size:12px;"
+                oninput="previewTemplate()">
+              <input type="color" id="tmpl-watermark-color" value="#c9a84c22"
+                style="width:32px;height:34px;border:1px solid var(--border-dim);border-radius:3px;cursor:pointer;padding:1px;background:none;"
+                oninput="previewTemplate()">
+            </div>
+          </div>
+
+          <!-- Right column -->
+          <div>
+            <div class="modal-label" style="margin-bottom:8px;">Text Style</div>
+
+            <div class="modal-row">
+              <div class="modal-label" style="font-size:9px;">Font</div>
+              <select class="modal-input" id="tmpl-font" style="padding:5px 8px;" onchange="previewTemplate()">
+                <option value="Playfair Display">Playfair Display</option>
+                <option value="Cinzel">Cinzel Serif</option>
+                <option value="Lato">Lato Sans</option>
+                <option value="Arial, sans-serif">System Sans</option>
+              </select>
+            </div>
+
+            <div class="modal-row">
+              <div class="modal-label" style="font-size:9px;">Text Color</div>
+              <input type="color" class="modal-input" id="tmpl-text-color" value="#f6f2ec"
+                style="height:34px;cursor:pointer;" oninput="previewTemplate()">
+            </div>
+
+            <div class="modal-row">
+              <div class="modal-label" style="font-size:9px;">Alignment</div>
+              <select class="modal-input" id="tmpl-align" style="padding:5px 8px;" onchange="previewTemplate()">
+                <option value="center" selected>Center</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+
+            <div class="modal-row">
+              <div class="modal-label" style="font-size:9px;">Text Shadow</div>
+              <select class="modal-input" id="tmpl-shadow" style="padding:5px 8px;" onchange="previewTemplate()">
+                <option value="soft" selected>Soft</option>
+                <option value="glow">Glow</option>
+                <option value="hard">Hard</option>
+                <option value="outline">Outline</option>
+                <option value="none">None</option>
+              </select>
+            </div>
+
+            <div class="modal-row">
+              <div class="modal-label" style="font-size:9px;">Line Spacing</div>
+              <select class="modal-input" id="tmpl-line-spacing" style="padding:5px 8px;" onchange="previewTemplate()">
+                <option value="1.3">Tight</option>
+                <option value="1.5">Normal</option>
+                <option value="1.65" selected>Relaxed</option>
+                <option value="1.9">Wide</option>
+                <option value="2.2">Extra Wide</option>
+              </select>
+            </div>
+
+            <div class="modal-row">
+            <div class="modal-label" style="font-size:9px;margin-bottom:4px;">Slide Font Size</div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <input type="range" id="tmpl-font-size-range"
+                min="14" max="60" value="26"
+                style="flex:1;accent-color:var(--accent);"
+                oninput="onTmplFontSizeChange(this.value)">
+              <div class="tmpl-font-size-val" id="tmpl-font-size-val">26px</div>
+            </div>
+          </div>
+            <div class="modal-row">
+              <div class="modal-label" style="font-size:9px;">Title Color</div>
+              <input type="color" class="modal-input" id="tmpl-title-color" value="#c9a84c"
+                style="height:34px;cursor:pointer;" oninput="previewTemplate()">
+            </div>
+
+            <div class="modal-row">
+              <div class="modal-label" style="font-size:9px;">Footer Color</div>
+              <input type="color" class="modal-input" id="tmpl-footer-color" value="#55535a"
+                style="height:34px;cursor:pointer;" oninput="previewTemplate()">
+            </div>
+
+            <!-- Live mini preview -->
+            <div class="modal-label" style="margin-bottom:5px;margin-top:12px;">Live Preview</div>
+            <div class="tmpl-mini-preview" id="tmpl-live-preview">
+              <div class="tmpl-mini-bg" id="tmpl-mini-bg"></div>
+              <div class="tmpl-mini-grid" id="tmpl-mini-grid"></div>
+              <div class="tmpl-mini-corners" id="tmpl-mini-corners">
+                <div class="tmpl-mc tl"></div><div class="tmpl-mc tr"></div>
+                <div class="tmpl-mc bl"></div><div class="tmpl-mc br"></div>
+              </div>
+              <div class="tmpl-mini-inner">
+                <div class="tmpl-mini-title" id="tmpl-mini-title">Song Title</div>
+                <div class="tmpl-mini-text"  id="tmpl-mini-text">
+                  Amazing grace! How sweet the sound<br>
+                  That saved a wretch like me!
+                </div>
+              </div>
+              <div class="tmpl-mini-footer" id="tmpl-mini-footer">VERSE 1 · NIV · CCLI #000000</div>
+              <div class="tmpl-mini-watermark" id="tmpl-mini-watermark"></div>
+              <div class="tmpl-mini-vignette" id="tmpl-mini-vignette" style="display:none;"></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- .modal-body -->
+      <div class="tmpl-apply-bar" id="tmpl-apply-bar">
+  <button class="tmpl-apply-now-btn" onclick="editorApplyAndClose()">
+    ✓ Apply Template Now
+  </button>
+  <button class="tmpl-apply-now-btn"
+    style="background:var(--green);flex:0 0 auto;padding:9px 14px;"
+    onclick="editorSaveAndApply()">
+    💾 Save &amp; Apply
+  </button>
+  <button class="tmpl-save-only-btn" onclick="editorSaveOnly()">
+    Save Only
+  </button>
+  <button class="tmpl-save-only-btn"
+    style="border-color:rgba(224,80,80,.3);color:var(--red);"
+    onclick="closeTemplates()">
+    Cancel
+  </button>
+</div>
+</div>
+
+<div class="drawer-backdrop" id="drawer-backdrop" onclick="closeAllDrawers()"></div>
+
+<script src="js/BrideWorship.js"></script>
+<script src="js/fix.js"></script>
+<script src="js/theme-engine.js"></script>
+<script src="js/fix2.js"></script>
+<script src="js/fix3.js"></script>
+<script src="js/fix4.js"></script>
+<script src="js/fix5.js"></script>
+<script src="js/fix6.js"></script>
+<script src="js/fix7.js"></script>
+<script src="js/fix8.js"></script>
+<script src="js/fix9.js"></script>
+<script src="js/fix10.js"></script>
+<script src="js/fix10-patch.js"></script>
+<script src="js/fix11.js"></script>
+<script src="js/fix12.js"></script>
+<script src="js/fix13.js"></script>
+<script src="js/fix14.js"></script>
+<script src="js/fix15.js"></script>
+<script src="js/fix16.js"></script>
+<script src="js/fix17.js"></script>
+<script src="js/fix18.js"></script>
+<script src="js/fix19.js"></script>
+</body>
+</html>

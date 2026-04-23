@@ -1,0 +1,139 @@
+/* ══════════════════════════════════════════════
+   DATABASE IMPORT / EXPORT — Styles
+══════════════════════════════════════════════ */
+
+.db-modal-box {
+  width: 660px; max-width: 97vw; max-height: 90vh;
+  display: flex; flex-direction: column;
+}
+
+/* ── Tab bar ── */
+.db-tabs-bar {
+  display: flex; flex-shrink: 0;
+  border-bottom: 1px solid var(--border-dim);
+  background: #0b0b14;
+}
+.db-tab {
+  flex: 1; padding: 11px 8px; text-align: center;
+  font-size: 11px; color: var(--text-3); cursor: pointer;
+  border-bottom: 2px solid transparent;
+  font-family: 'Cinzel', serif; letter-spacing: 1.5px;
+  text-transform: uppercase; transition: all .18s;
+}
+.db-tab:hover { color: var(--text-2); }
+.db-tab.on { color: var(--gold); border-bottom-color: var(--gold); }
+
+/* ── Panel wrapper ── */
+.db-panel { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+.db-scroll { overflow-y: auto; flex: 1; }
+.db-scroll::-webkit-scrollbar { width: 3px; }
+.db-scroll::-webkit-scrollbar-thumb { background: var(--border-dim); border-radius: 2px; }
+
+/* ── Drop Zone ── */
+.drop-zone {
+  border: 2px dashed var(--border-dim);
+  border-radius: 8px; padding: 28px 20px;
+  text-align: center; cursor: pointer;
+  transition: all .22s; margin-bottom: 14px;
+  background: rgba(201,168,76,.02);
+  display: flex; flex-direction: column;
+  align-items: center; gap: 6px;
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--gold-dim);
+  background: rgba(201,168,76,.07);
+}
+.dz-icon { font-size: 34px; line-height: 1; }
+.dz-text { font-size: 13px; color: var(--text-2); font-weight: 700; }
+.dz-sub  { font-size: 11px; color: var(--text-3); }
+
+/* ── Format matrix ── */
+.format-matrix {
+  background: var(--bg-card); border: 1px solid var(--border-dim);
+  border-radius: 5px; padding: 10px 13px; margin-bottom: 11px;
+}
+.fmt-matrix-head {
+  font-family: 'Cinzel', serif; font-size: 9px;
+  letter-spacing: 2px; color: var(--gold-dim);
+  text-transform: uppercase; margin-bottom: 9px;
+}
+.fmt-matrix-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
+}
+.fmg-item { display: flex; align-items: center; gap: 7px; }
+.fmg-ext {
+  font-family: monospace; font-size: 10px;
+  background: var(--bg-active); color: var(--gold);
+  padding: 2px 6px; border-radius: 3px;
+  min-width: 50px; text-align: center; flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+.fmg-name { font-size: 10px; color: var(--text-3); }
+
+/* ── Preview list ── */
+.db-preview-header {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 6px;
+}
+.db-preview-list {
+  max-height: 220px; overflow-y: auto;
+  border: 1px solid var(--border-dim); border-radius: 5px;
+  background: var(--bg-deep);
+}
+.db-preview-list::-webkit-scrollbar { width: 3px; }
+.db-preview-list::-webkit-scrollbar-thumb { background: var(--border-dim); }
+.db-preview-item {
+  padding: 8px 11px; border-bottom: 1px solid var(--border-dim);
+  transition: background .15s;
+}
+.db-preview-item:last-child { border-bottom: none; }
+.db-preview-item:hover { background: var(--bg-hover); }
+.dpi-title { font-size: 12px; font-weight: 700; color: var(--text-1); }
+.dpi-sub   { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+.dpi-slides {
+  margin-top: 5px; display: flex; flex-wrap: wrap; gap: 3px;
+}
+.dpi-badge {
+  font-size: 8px; padding: 1px 5px;
+  background: var(--bg-active); color: var(--gold-dim);
+  border: 1px solid var(--border); border-radius: 2px;
+  text-transform: uppercase; font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
+}
+
+/* ── Export section ── */
+.export-hint-box {
+  background: rgba(201,168,76,.06); border: 1px solid var(--border);
+  border-radius: 4px; padding: 9px 12px; font-size: 11px;
+  color: var(--text-3); line-height: 1.75; min-height: 38px;
+  margin-top: 7px;
+}
+.db-compat-table {
+  width: 100%; border-collapse: collapse; font-size: 11px;
+}
+.db-compat-table thead tr {
+  background: var(--bg-active);
+}
+.db-compat-table th {
+  padding: 7px 11px; text-align: left;
+  font-family: 'Cinzel', serif; font-size: 9px;
+  letter-spacing: 2px; color: var(--gold-dim);
+  text-transform: uppercase;
+}
+.db-compat-table td {
+  padding: 6px 11px; border-bottom: 1px solid var(--border-dim);
+  color: var(--text-3);
+}
+.db-compat-table tr:last-child td { border-bottom: none; }
+.db-info-box {
+  border: 1px solid var(--border-dim); border-radius: 5px;
+  padding: 9px 13px; font-size: 11px; color: var(--text-3);
+  line-height: 1.7;
+}
+
+/* ── Import success banner ── */
+.import-success {
+  background: rgba(76,175,122,.1); border: 1px solid rgba(76,175,122,.3);
+  border-radius: 4px; padding: 8px 12px; font-size: 11px;
+  color: var(--green); margin-top: 8px;
+}
