@@ -1495,38 +1495,6 @@
     <div class="table-panel" id="tt-reader" style="display:none;">
       <div class="modal-body db-scroll">
 
-        <!-- Search bar -->
-        <div style="display:flex;gap:5px;margin-bottom:10px;">
-          <input class="sc-input" id="reader-search" placeholder="Search sermon title, date or scripture… e.g. John 3:16"
-            style="flex:1;" onkeydown="if(event.key==='Enter')searchBuiltinSermons()">
-          <button class="sc-add" onclick="searchBuiltinSermons()">Search</button>
-          <button class="sc-add" style="background:var(--bg-card);border:1px solid var(--border-dim);color:var(--text-2);"
-            onclick="loadFeaturedSermons()">Featured</button>
-        </div>
-
-        <!-- Filter row -->
-        <div style="display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap;">
-          <select class="fmt-select" id="reader-year" style="flex:1;min-width:90px;">
-            <option value="">All Years</option>
-          </select>
-          <select class="fmt-select" id="reader-book" style="flex:1;min-width:120px;">
-            <option value="">All Topics</option>
-            <option value="faith">Faith</option>
-            <option value="healing">Healing</option>
-            <option value="holy spirit">Holy Spirit</option>
-            <option value="prayer">Prayer</option>
-            <option value="resurrection">Resurrection</option>
-            <option value="grace">Grace</option>
-          </select>
-        </div>
-
-        <!-- Results list -->
-        <div id="reader-results" class="db-preview-list" style="max-height:180px;">
-          <div style="color:var(--text-3);font-size:11px;padding:14px;text-align:center;">
-            Search above or click <strong>Featured</strong> to browse sermons.
-          </div>
-        </div>
-
         <!-- Selected sermon viewer -->
         <div id="reader-viewer" style="display:none;margin-top:12px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;flex-wrap:wrap;gap:5px;">
