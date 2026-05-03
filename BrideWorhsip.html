@@ -61,7 +61,9 @@
         <button class="lib-icon-btn" onclick="exportSongs()" title="Export Songs JSON">⬆ Export</button>
       </div>
     </div>
-    <input class="search" id="search" placeholder="Search songs, scripture…" oninput="filterSongs()">
+    
+    <input class="search" id="search" placeholder="Search songs by title or any words" oninput="filterSongs()">
+    <span class="lib-subtag" style="padding-left: 50px; color: var(--text-3); "><i>Hold Ctrl + H to activate</i></span>
   </div>
   <div class="lib-tabs">
     <div class="ltab on" id="ltab-songs"          onclick="libTab(this,'ls-songs')">Songs</div>
