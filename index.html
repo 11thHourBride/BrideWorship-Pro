@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BrideWorship Pro — Loading</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gold:      #c9a84c;
+      --gold-dim:  #8a6a20;
+      --gold-pale: rgba(201,168,76,.15);
+      --dark:      #06050f;
+      --dark2:     #09090f;
+      --text:      #f0ece4;
+      --dur:       2s;        /* duration per image */
+    }
+
+    /* ═══════════════════════════════════
+       BODY / ROOT
+    ═══════════════════════════════════ */
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--dark);
+      overflow: hidden;
+      font-family: 'Lato', sans-serif;
+    }
+
+    /* ═══════════════════════════════════
+       FAINT FULL-PAGE BACKGROUND IMAGE
+       Replace bg.jpg with your image file.
+    ═══════════════════════════════════ */
+    #bg-image {
+      position: fixed;
+      inset: 0;
+      background:
+        /* Dark overlay so image stays faint */
+        linear-gradient(180deg,
+          rgba(6,5,15,.82) 0%,
+          rgba(6,5,15,.70) 50%,
+          rgba(6,5,15,.88) 100%
+        ),
+        /* ← Replace this URL with your background image path */
+        url('images/eagle3.jpg') center/cover no-repeat;
+      z-index: 0;
+    }
+
+    /* Noise grain texture overlay */
+    #bg-image::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: .35;
+    }
+
+    /* ═══════════════════════════════════
+       LOADER WRAPPER
+    ═══════════════════════════════════ */
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+    }
+
+    /* ═══════════════════════════════════
+       LOGO AREA
+    ═══════════════════════════════════ */
+    #logo-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 52px;
+      animation: logoReveal 1.2s cubic-bezier(.22,.8,.36,1) forwards;
+    }
+
+    @keyframes logoReveal {
+      from { opacity: 0; transform: translateY(-18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    #logo-mark {
+      font-size: 32px;
+      color: var(--gold);
+      letter-spacing: 8px;
+      text-shadow: 0 0 40px rgba(201,168,76,.5);
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { text-shadow: 0 0 40px rgba(201,168,76,.4); }
+      50%      { text-shadow: 0 0 80px rgba(201,168,76,.8), 0 0 120px rgba(201,168,76,.3); }
+    }
+
+    #logo-title {
+      font-family: 'Cinzel', serif;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 6px;
+      color: var(--text);
+      text-transform: uppercase;
+      text-shadow: 0 2px 30px rgba(0,0,0,.8);
+    }
+
+    #logo-sub {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 5px;
+      color: var(--gold-dim);
+      text-transform: uppercase;
+    }
+
+    /* Golden divider */
+    .divider {
+      width: 160px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 6px 0;
+    }
+
+    /* ═══════════════════════════════════
+       IMAGE CAROUSEL
+    ═══════════════════════════════════ */
+    #carousel {
+      position: relative;
+      width: min(680px, 90vw);
+      height: min(380px, 50vw, 56vh);
+      border-radius: 6px;
+      overflow: hidden;
+      /* Gold frame */
+      box-shadow:
+        0 0 0 1px rgba(201,168,76,.3),
+        0 0 0 3px rgba(6,5,15,.8),
+        0 0 0 4px rgba(201,168,76,.15),
+        0 32px 80px rgba(0,0,0,.8);
+    }
+
+    /* Each image slide */
+    .slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity .7s ease;
+      background: #0a0814 center/cover no-repeat;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .slide.active  { opacity: 1; }
+    .slide.exiting { opacity: 0; }
+
+    /* Caption bar at bottom of each image */
+    .slide-caption {
+      width: 100%;
+      padding: 18px 24px 20px;
+      background: linear-gradient(0deg, rgba(6,5,15,.95) 0%, rgba(6,5,15,.5) 60%, transparent 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transform: translateY(4px);
+      transition: transform .5s ease;
+    }
+    .slide.active .slide-caption { transform: translateY(0); }
+
+    .caption-label {
+      font-family: 'Cinzel', serif;
+      font-size: 8px;
+      letter-spacing: 4px;
+      color: var(--gold);
+      text-transform: uppercase;
+    }
+    .caption-title {
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      letter-spacing: 2px;
+      color: var(--text);
+    }
+
+    /* Slide images — replace src with your actual image paths */
+    /* Each .slide gets a data-bg that we apply via JS */
+
+    /* Corner decorations on carousel */
+    #carousel::before, #carousel::after {
+      content: '';
+      position: absolute;
+      width: 24px; height: 24px;
+      border-color: var(--gold);
+      border-style: solid;
+      z-index: 20;
+      pointer-events: none;
+    }
+    #carousel::before {
+      top: 10px; left: 10px;
+      border-width: 1.5px 0 0 1.5px;
+    }
+    #carousel::after {
+      bottom: 10px; right: 10px;
+      border-width: 0 1.5px 1.5px 0;
+    }
+
+    /* ═══════════════════════════════════
+       PROGRESS DOTS + BAR
+    ═══════════════════════════════════ */
+    #progress-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      margin-top: 28px;
+    }
+
+    /* Dots */
+    #dots {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(201,168,76,.2);
+      border: 1px solid rgba(201,168,76,.3);
+      transition: all .4s ease;
+    }
+    .dot.done {
+      background: var(--gold-dim);
+      border-color: var(--gold-dim);
+      transform: scale(1.1);
+    }
+    .dot.active {
+      background: var(--gold);
+      border-color: var(--gold);
+      transform: scale(1.4);
+      box-shadow: 0 0 10px rgba(201,168,76,.6);
+    }
+
+    /* Progress bar */
+    #bar-track {
+      width: min(360px, 72vw);
+      height: 2px;
+      background: rgba(201,168,76,.12);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    #bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+      border-radius: 2px;
+      transition: width 0.1s linear;
+    }
+
+    /* Loading text */
+    #loading-text {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: 4px;
+      color: var(--gold-dim);
+      text-transform: uppercase;
+      opacity: .7;
+    }
+
+    /* ═══════════════════════════════════
+       FINAL FADE-OUT OF LOADER
+    ═══════════════════════════════════ */
+    #loader.fade-out {
+      animation: loaderOut 1.4s cubic-bezier(.6,0,.8,1) forwards;
+    }
+    @keyframes loaderOut {
+      0%   { opacity: 1; }
+      100% { opacity: 0; pointer-events: none; }
+    }
+
+    /* ═══════════════════════════════════
+       MAIN APP IFRAME  (fades in after loader)
+    ═══════════════════════════════════ */
+    #app-frame {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      opacity: 0;
+      border: none;
+      width: 100%;
+      height: 100%;
+      transition: opacity 1.4s ease;
+      background: var(--dark);
+    }
+    #app-frame.visible { opacity: 1; }
+
+    /* ═══════════════════════════════════
+       RESPONSIVE TWEAKS
+    ═══════════════════════════════════ */
+    @media (max-width: 600px) {
+      #logo-title { font-size: 20px; letter-spacing: 4px; }
+      #logo-mark  { font-size: 24px; }
+      .caption-title { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Faint full-page background -->
+  <div id="bg-image"></div>
+
+  <!-- Main app loads inside here (hidden until ready) -->
+  <!--
+    Change "BrideWorship.html" to the actual filename of your main app.
+    Using an iframe means the app starts loading in the background
+    while the splash screen plays.
+  -->
+  <iframe id="app-frame" src="BrideWorship.html" title="BrideWorship Pro"></iframe>
+
+  <!-- ═══ SPLASH / LOADER ═══ -->
+  <div id="loader">
+
+    <!-- Logo -->
+    <div id="logo-area">
+      <div id="logo-mark">✦ ✦ ✦</div>
+      <div id="logo-title">BrideWorship <span style="color:var(--gold);font-weight:900;">Pro</span></div>
+      <div class="divider"></div>
+      <div id="logo-sub">For The Edifying Of The Bride Of Christ</div>
+    </div>
+
+    <!-- Image carousel -->
+    <div id="carousel">
+
+      <!--
+        SLIDES 1–7
+        Replace  data-bg="images/slide1.jpg"  with your actual image paths.
+        You can use:
+          • Relative paths:   data-bg="images/worship1.jpg"
+          • Absolute paths:   data-bg="/assets/slide1.jpg"
+          • Full URLs:        data-bg="https://example.com/img.jpg"
+        The caption-label and caption-title are customisable below.
+      -->
+
+      <div class="slide" data-bg="images/Apostle Paul 2.jpg">
+        <div class="slide-caption">
+          <div class="caption-label">The First Messenger To The Gentile Church Age - Apostle Paul AD 57-170 <b>EPHESUS</b></div>
+          <div class="caption-title">Living Creature - Lion signifying <b>Boldness</b></div>
+        </div>
+      </div>
+
+      <div class="slide" data-bg="images/Saint Irenaeus.jpg">
+        <div class="slide-caption">
+          <div class="caption-label">The Second Messenger To The Gentile Church Age - Saint Irenaeus AD 170-312 <b>SMYRNA</b></div>
+          <div class="caption-title">Living Creature - Lion signifying <b>Boldness</b></div>
+        </div>
+      </div>
+
+      <div class="slide" data-bg="images/Saint Martin.jpg">
+        <div class="slide-caption">
+          <div class="caption-label">The Third Messenger To The Gentile Church Age - Saint Martin AD 312-606 <b>PERGAMOS</b></div>
+          <div class="caption-title">Living Creature - Ox signifying <b>Strength</b></div>
+        </div>
+      </div>
+
+      <div class="slide" data-bg="images/Saint Columba.jfif">
+        <div class="slide-caption">
+          <div class="caption-label">The Fourth Messenger To The Gentile Church Age - Saint Columba AD 606-1520 <b>THYATIRA</b></div>
+          <div class="caption-title">Living Creature - Ox signifying <b>Sacrifice</b></div>
+        </div>
+      </div>
+
+      <div class="slide" data-bg="images/Saint Martin Luther.jpg">
+        <div class="slide-caption">
+          <div class="caption-label">The Fifth Messenger To The Gentile Church Age - Martin Luther AD 1520-1750 <b>SARDIS</b></div>
+           <div class="caption-title">Living Creature - Man signifying <b>Wisdom</b></div>
+        </div>
+      </div>
+
+      <div class="slide" data-bg="images/John Wesley.jpg">
+        <div class="slide-caption">
+          <div class="caption-label">The Sixth Messenger To The Gentile Church Age - John Wesley AD 1750-1906 <b>PHILADELPHIA</b></div>
+           <div class="caption-title">Living Creature - Man signifying <b>Wisdom</b></div>
+        </div>
+      </div>
+
+      <div class="slide" data-bg="images/William Marrion Branham 3.jpg">
+        <div class="slide-caption">
+         <div class="caption-label">The Seventh Messenger To The Gentile Church Age - William Marrion Branham AD 1906-Present <b>LAODICEA</b></div>
+           <div class="caption-title">Living Creature - Eagle signifying <b>Vision</b></div>
+        </div>
+      </div>
+
+    </div><!-- #carousel -->
+
+    <!-- Progress area -->
+    <div id="progress-area">
+      <div id="dots"></div>
+      <div id="bar-track"><div id="bar-fill"></div></div>
+      <div id="loading-text">Preparing your workspace…</div>
+    </div>
+
+  </div><!-- #loader -->
+
+  <script>
+  (function () {
+    'use strict';
+
+    /* ── Config ────────────────────────────────────── */
+    const SLIDE_COUNT   = 7;
+    const MS_PER_SLIDE  = 2000;          /* 2 s per image */
+    const TOTAL_MS      = SLIDE_COUNT * MS_PER_SLIDE; /* 14 s */
+    const TICK_MS       = 50;            /* bar update interval */
+
+    const LOADING_MESSAGES = [
+      'Preparing your workspace…',
+      'Loading song library…',
+      'Initialising scripture database…',
+      'Connecting to The Table…',
+      'Loading templates & themes…',
+      'Setting up projection engine…',
+      'Almost ready…',
+    ];
+
+    /* ── Elements ──────────────────────────────────── */
+    const slides      = Array.from(document.querySelectorAll('.slide'));
+    const dotsWrap    = document.getElementById('dots');
+    const barFill     = document.getElementById('bar-fill');
+    const loadingText = document.getElementById('loading-text');
+    const loader      = document.getElementById('loader');
+    const appFrame    = document.getElementById('app-frame');
+
+    /* ── Apply background images from data-bg ──────── */
+    slides.forEach(slide => {
+      const bg = slide.getAttribute('data-bg');
+      if (bg) slide.style.backgroundImage = `url('${bg}')`;
+    });
+
+    /* ── Build dots ────────────────────────────────── */
+    slides.forEach((_, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'dot';
+      dot.id = 'dot-' + i;
+      dotsWrap.appendChild(dot);
+    });
+
+    /* ── State ─────────────────────────────────────── */
+    let currentSlide = 0;
+    let elapsed      = 0;
+
+    /* ── Activate first slide ──────────────────────── */
+    function activateSlide(idx) {
+      slides.forEach((s, i) => {
+        s.classList.remove('active', 'exiting');
+        if (i < idx)  s.classList.add('exiting');
+        if (i === idx) s.classList.add('active');
+      });
+      document.querySelectorAll('.dot').forEach((d, i) => {
+        d.classList.remove('active', 'done');
+        if (i < idx)  d.classList.add('done');
+        if (i === idx) d.classList.add('active');
+      });
+      loadingText.textContent = LOADING_MESSAGES[idx] || LOADING_MESSAGES[LOADING_MESSAGES.length - 1];
+    }
+
+    activateSlide(0);
+
+    /* ── Tick — runs every TICK_MS ─────────────────── */
+    const iv = setInterval(() => {
+      elapsed += TICK_MS;
+
+      /* Update progress bar smoothly */
+      const pct = Math.min((elapsed / TOTAL_MS) * 100, 100);
+      barFill.style.width = pct + '%';
+
+      /* Determine which slide should be active */
+      const slideIdx = Math.min(
+        Math.floor(elapsed / MS_PER_SLIDE),
+        SLIDE_COUNT - 1
+      );
+
+      if (slideIdx !== currentSlide) {
+        currentSlide = slideIdx;
+        activateSlide(currentSlide);
+      }
+
+      /* All done */
+      if (elapsed >= TOTAL_MS) {
+        clearInterval(iv);
+        _finish();
+      }
+    }, TICK_MS);
+
+    /* ── Finish: fade out loader, reveal app ───────── */
+    function _finish() {
+      /* Mark all dots done */
+      document.querySelectorAll('.dot').forEach(d => {
+        d.classList.remove('active');
+        d.classList.add('done');
+      });
+      barFill.style.width = '100%';
+      loadingText.textContent = 'Welcome ✦';
+
+      /* Short pause so "Welcome" is readable, then fade */
+      setTimeout(() => {
+        loader.classList.add('fade-out');
+        appFrame.classList.add('visible');
+      }, 600);
+
+      /* Remove loader from DOM after animation completes */
+      setTimeout(() => {
+        loader.style.display = 'none';
+      }, 2200);
+    }
+
+  })();
+  </script>
+
+</body>
+</html>
