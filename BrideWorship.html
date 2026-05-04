@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BrideWorship — Live Projection</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Arial:wght@400;600;700&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/BrideWorship.css">
 <link rel="stylesheet" href="styles/themes.css">
 <link rel="stylesheet" href="styles/king-james.css">
@@ -622,7 +622,7 @@
       <input type="checkbox" id="count-up-chk" onchange="S.timer.countUp=this.checked"> Count Up Instead
     </label>
     <div style="margin-top:12px;display:flex;flex-direction:column;gap:5px;width:260px;">
-      <span style="font-size:10px;color:var(--text-3);font-family:Cinzel,serif;letter-spacing:1px;">END MESSAGE (projected)</span>
+      <span style="font-size:10px;color:var(--text-3);font-family:Arial,serif;letter-spacing:1px;">END MESSAGE (projected)</span>
       <input class="sc-input" id="timer-end-msg" type="text" placeholder="e.g. Service Beginning Now…" style="width:100%;">
     </div>
   </div>
@@ -682,7 +682,7 @@
         <div class="fmt-row">
           <select class="fmt-select" id="font-sel" onchange="setFont(this.value)" style="flex:1;">
             <option value="playfair">Playfair Display</option>
-            <option value="cinzel">Cinzel Serif</option>
+            <option value="Arial">Arial Serif</option>
             <option value="lato">Lato Sans</option>
             <option value="sans">System Sans</option>
           </select>
@@ -1262,7 +1262,7 @@
 
         <!-- Preview header -->
         <div class="db-preview-header">
-          <span style="font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;">Song Preview</span>
+          <span style="font-family:'Arial',serif;font-size:9px;letter-spacing:2px;color:var(--gold-dim);text-transform:uppercase;">Song Preview</span>
           <div style="display:flex;gap:5px;">
             <button class="lib-icon-btn" onclick="selectAllImport(true)">Select All</button>
             <button class="lib-icon-btn" onclick="selectAllImport(false)">Deselect All</button>
@@ -1533,7 +1533,7 @@
         <div id="reader-viewer" style="display:none;margin-top:12px;">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;flex-wrap:wrap;gap:5px;">
             <div id="reader-sermon-title"
-              style="font-family:'Cinzel',serif;font-size:12px;color:var(--gold);letter-spacing:1px;"></div>
+              style="font-family:'Arial',serif;font-size:12px;color:var(--gold);letter-spacing:1px;"></div>
             <div style="display:flex;gap:5px;">
               <button class="lib-icon-btn" onclick="selectAllReaderText()">Select All</button>
               <button class="sc-add" onclick="projectSelectedReaderText()"
@@ -1779,7 +1779,7 @@
               <div class="modal-label" style="font-size:9px;">Font</div>
               <select class="modal-input" id="tmpl-font" style="padding:5px 8px;" onchange="previewTemplate()">
                 <option value="Playfair Display">Playfair Display</option>
-                <option value="Cinzel">Cinzel Serif</option>
+                <option value="Arial">Arial Serif</option>
                 <option value="Lato">Lato Sans</option>
                 <option value="Arial, sans-serif">System Sans</option>
               </select>
@@ -1921,5 +1921,6 @@
 <script src="js/fix24.js"></script>
 <script src="js/fix25.js"></script>
 <script src="js/preview-fix.js"></script>
+<script src="js/fix26.js"></script>
 </body>
 </html>
