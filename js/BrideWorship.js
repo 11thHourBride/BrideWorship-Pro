@@ -158,7 +158,7 @@ const KJV_BOOKS = [
    VERSE COUNTS PER CHAPTER — all 66 books
 ───────────────────────────────────────── */
 const KJV_VERSES = {
-  'Genesis':         [31,25,24,26,32,22,24,22,29,32,32,20,18,24,21,16,27,33,38,18,34,24,20,67,34,35,46,22,35,43,55,32,20,31,29,43,36,30,23,43,54,22,20,31,23,30,30,21,38,26],
+  'Genesis':         [31,25,24,26,32,22,24,22,29,32,32,20,18,24,21,16,27,33,38,18,34,24,20,67,34,35,46,22,35,43,55,32,20,31,29,43,36,30,23,23,54,22,20,31,23,30,30,21,38,26],
   'Exodus':          [22,25,22,31,23,30,25,32,35,29,10,51,22,31,27,36,16,27,25,26,36,31,33,18,40,37,21,43,46,38,18,35,23,35,35,38,29,31,43,38],
   'Leviticus':       [17,16,17,35,19,30,38,36,24,20,47,8,59,57,33,34,16,30,24,46,22,22,15,17,14,15],
   'Numbers':         [54,34,51,49,31,27,89,26,23,36,35,16,33,45,41,50,13,32,22,29,35,41,30,25,18,65,23,31,40,16,54,42,56,29,34,13],
@@ -811,7 +811,7 @@ const BACKGROUNDS = [
 const THEMES = [
   {id:'classic', name:'Classic', icon:'✦', font:'Playfair Display', shadow:'soft'},
   {id:'modern',  name:'Modern',  icon:'◉', font:'Lato',             shadow:'none'},
-  {id:'regal',   name:'Regal',   icon:'♔', font:'Cinzel',           shadow:'glow'},
+  {id:'regal',   name:'Regal',   icon:'♔', font:'Arial',           shadow:'glow'},
   {id:'bold',    name:'Bold',    icon:'⬛', font:'Lato',             shadow:'hard'},
   {id:'elegant', name:'Elegant', icon:'✿', font:'Playfair Display', shadow:'outline'},
   {id:'minimal', name:'Minimal', icon:'—', font:'Lato',             shadow:'none'},
@@ -1214,7 +1214,7 @@ function toggleLogo() {
     const lEl = document.getElementById('s-text');
     if (tEl) tEl.textContent = logoText;
     if (lEl) {
-      lEl.innerHTML = '<span style="font-family:Cinzel,serif;font-size:52px;color:#c9a84c;letter-spacing:6px;text-shadow:0 0 40px rgba(201,168,76,.5);">✦</span>';
+      lEl.innerHTML = '<span style="font-family:Arial,serif;font-size:52px;color:#c9a84c;letter-spacing:6px;text-shadow:0 0 40px rgba(201,168,76,.5);">✦</span>';
       lEl.style.textAlign = 'center';
     }
     const fEl = document.getElementById('s-footer');
@@ -1329,7 +1329,7 @@ function setAlign(a) {
 }
 
 function setFont(val) {
-  const map = {playfair:'Playfair Display', cinzel:'Cinzel', lato:'Lato', sans:'Arial, sans-serif'};
+  const map = {playfair:'Playfair Display', Arial:'Arial', lato:'Lato', sans:'Arial, sans-serif'};
   S.format.font = map[val] || val;
   const el = document.getElementById('s-text');
   if (el) applyStyleToEl(el);
@@ -1352,7 +1352,7 @@ function applyTheme(id) {
   S.format.shadow = t.shadow;
   const fontSelVal = {
     'Playfair Display':'playfair',
-    'Cinzel':'cinzel',
+    'Arial':'Arial',
     'Lato':'lato',
     'Arial, sans-serif':'sans'
   };
@@ -1522,7 +1522,7 @@ function pushTimerToProj(str) {
   const lEl = document.getElementById('s-text');
   if (tEl) tEl.textContent = 'COUNTDOWN';
   if (lEl) {
-    lEl.innerHTML = `<span style="font-family:'Cinzel',serif;font-size:${S.fontSize+22}px;letter-spacing:6px;color:var(--gold);text-shadow:0 0 40px rgba(201,168,76,.4);">${str}</span>`;
+    lEl.innerHTML = `<span style="font-family:'Arial',serif;font-size:${S.fontSize+22}px;letter-spacing:6px;color:var(--gold);text-shadow:0 0 40px rgba(201,168,76,.4);">${str}</span>`;
   }
 }
 
@@ -2092,15 +2092,15 @@ function openStageDisplay() {
 function projWindowHTML() {
   const bg = BACKGROUNDS.find(b => b.id === S.bgId) || BACKGROUNDS[0];
   return `<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Arial:wght@400;600;700&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     body{background:#000;color:#fff;font-family:'Playfair Display',serif;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;}
     #proj-bg{position:fixed;inset:0;transition:background .5s;}
     #proj-inner{position:relative;text-align:center;padding:40px 60px;max-width:90%;width:100%;z-index:2;}
-    #proj-ref{font-family:'Cinzel',serif;font-size:16px;letter-spacing:5px;color:rgba(201,168,76,.8);text-transform:uppercase;margin-bottom:22px;}
+    #proj-ref{font-family:'Arial',serif;font-size:16px;letter-spacing:5px;color:rgba(201,168,76,.8);text-transform:uppercase;margin-bottom:22px;}
     #proj-text{font-size:48px;line-height:1.6;text-shadow:0 2px 30px rgba(0,0,0,.95);}
-    #proj-footer{position:fixed;bottom:18px;left:0;right:0;text-align:center;font-family:'Cinzel',serif;font-size:13px;letter-spacing:3px;color:rgba(255,255,255,.3);text-transform:uppercase;}
+    #proj-footer{position:fixed;bottom:18px;left:0;right:0;text-align:center;font-family:'Arial',serif;font-size:13px;letter-spacing:3px;color:rgba(255,255,255,.3);text-transform:uppercase;}
     #proj-lt{position:fixed;bottom:0;left:0;right:0;padding:16px 30px;display:none;text-align:center;font-size:22px;font-weight:700;letter-spacing:1.5px;color:#fff;}
     #proj-lt.visible{display:block;}
     #proj-lt.lt-default{background:rgba(8,5,26,.88);border-top:1px solid rgba(201,168,76,.3);}
@@ -2128,24 +2128,24 @@ function projWindowHTML() {
 
 function stageWindowHTML() {
   return `<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Arial:wght@400;600;700&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
     :root{--gold:#c9a84c;--text-3:#55535a;--border-dim:rgba(255,255,255,.06);}
     body{background:#090914;color:#fff;font-family:'Lato',sans-serif;height:100vh;display:grid;grid-template-rows:1fr 180px;overflow:hidden;}
     #stg-current{display:flex;align-items:center;justify-content:center;background:#06060f;border-bottom:2px solid var(--gold);padding:24px 50px;text-align:center;}
     #stg-cur-text{font-family:'Playfair Display',serif;font-size:40px;line-height:1.65;color:#f4f0ea;}
-    #stg-cur-ref{font-family:'Cinzel',serif;font-size:11px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:14px;}
+    #stg-cur-ref{font-family:'Arial',serif;font-size:11px;letter-spacing:4px;color:var(--gold);text-transform:uppercase;margin-bottom:14px;}
     #stg-bottom{display:grid;grid-template-columns:1fr 1fr 200px;background:#0b0b18;overflow:hidden;}
     #stg-next{border-right:1px solid var(--border-dim);padding:14px 20px;overflow:hidden;}
     #stg-notes{border-right:1px solid var(--border-dim);padding:14px 20px;overflow:hidden;display:flex;flex-direction:column;}
     #stg-clock-panel{padding:14px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
-    .stg-label{font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:6px;}
+    .stg-label{font-family:'Arial',serif;font-size:9px;letter-spacing:3px;color:var(--text-3);text-transform:uppercase;margin-bottom:6px;}
     #stg-next-text{font-family:'Playfair Display',serif;font-size:17px;line-height:1.65;color:rgba(244,240,234,.45);}
     #stg-notes-text{font-size:13px;color:rgba(255,255,255,.5);line-height:1.7;white-space:pre-wrap;overflow-y:auto;flex:1;}
-    #stg-timer{font-family:'Cinzel',serif;font-size:28px;color:var(--gold);letter-spacing:2px;display:none;}
+    #stg-timer{font-family:'Arial',serif;font-size:28px;color:var(--gold);letter-spacing:2px;display:none;}
     #stg-timer.visible{display:block;}
-    #stg-clock{font-family:'Cinzel',serif;font-size:16px;color:rgba(255,255,255,.4);letter-spacing:2px;}
+    #stg-clock{font-family:'Arial',serif;font-size:16px;color:rgba(255,255,255,.4);letter-spacing:2px;}
   </style></head><body>
   <div id="stg-current">
     <div>
@@ -3754,118 +3754,7 @@ function fmtBytes(bytes) {
    These are sourced from the public branham.org sermon catalogue.
    The content field contains excerpt text for projection. */
 const BUILTIN_SERMONS = [
-  {
-    id: 'be01',
-    title: 'Broken Cisterns',
-    date: '1958-02-02', code: '58-0202',
-    topic: 'faith',
-    preview: 'There is a fountain filled with blood, drawn from Emmanuel\'s veins.',
-    content: [
-      { section: 'OPENING', text: 'There is a fountain filled with blood,\nDrawn from Emmanuel\'s veins;\nAnd sinners plunged beneath that flood,\nLose all their guilty stains.' },
-      { section: 'MAIN TEXT', text: 'Jesus Christ is the same yesterday,\ntoday, and forever.\n— Hebrews 13:8' },
-      { section: 'QUOTE 1', text: '"The only thing that will satisfy\nthe human thirst is God Himself.\nNothing else will do it."' },
-      { section: 'QUOTE 2', text: '"Broken cisterns can hold no water.\nBut the fountain of life — it never runs dry."' },
-      { section: 'CLOSING', text: '"He said, Only believe, only believe,\nAll things are possible, only believe."' },
-    ]
-  },
-  {
-    id: 'be02',
-    title: 'The Identified Christ of All Ages',
-    date: '1964-04-09', code: '64-0409',
-    topic: 'resurrection',
-    preview: 'Jesus Christ identifies Himself in every age by His Word and His works.',
-    content: [
-      { section: 'OPENING', text: 'Jesus Christ the same yesterday,\nand today, and forever.\n— Hebrews 13:8' },
-      { section: 'QUOTE 1', text: '"God has always identified Himself\nto His people through His Word.\nHe is the Word."' },
-      { section: 'QUOTE 2', text: '"The same Jesus that walked in Galilee\nis walking among us today —\nidentified by the same signs, the same Word."' },
-      { section: 'SCRIPTURE', text: 'Jesus said unto her, I am the resurrection,\nand the life: he that believeth in me,\nthough he were dead, yet shall he live.\n— John 11:25' },
-      { section: 'CLOSING', text: '"He is not dead. He is risen, as He said.\nHe identified Himself then — He identifies\nHimself the same way today."' },
-    ]
-  },
-  {
-    id: 'be03',
-    title: 'A Greater Than Solomon Is Here',
-    date: '1958-03-27', code: '58-0327',
-    topic: 'holy spirit',
-    preview: 'The Holy Spirit is the Spirit of Christ moving among His people.',
-    content: [
-      { section: 'OPENING', text: '"Behold, a greater than Solomon is here."\n— Matthew 12:42' },
-      { section: 'QUOTE 1', text: '"Solomon had wisdom, but Christ\nis wisdom. Solomon had the spirit;\nChrist is the Spirit."' },
-      { section: 'QUOTE 2', text: '"The Queen of the South came from\nthe uttermost parts of the earth\nto hear the wisdom of Solomon —\nand a greater than Solomon is here."' },
-      { section: 'SCRIPTURE', text: 'But the Comforter, which is the Holy Ghost,\nwhom the Father will send in my name,\nhe shall teach you all things.\n— John 14:26' },
-      { section: 'CLOSING', text: '"He is here tonight — the same yesterday,\ntoday, and forever. Only believe."' },
-    ]
-  },
-  {
-    id: 'be04',
-    title: 'Why Cry? Speak!',
-    date: '1959-03-29', code: '59-0329S',
-    topic: 'faith',
-    preview: 'God told Moses to stop crying and speak to the problem.',
-    content: [
-      { section: 'OPENING', text: 'And the LORD said unto Moses,\nWherefore criest thou unto me?\nSpeak unto the children of Israel,\nthat they go forward.\n— Exodus 14:15' },
-      { section: 'QUOTE 1', text: '"God said, Why are you crying?\nGet up! Speak to the mountain.\nYou have the authority — use it."' },
-      { section: 'QUOTE 2', text: '"Faith doesn\'t cry and beg.\nFaith speaks. Faith acts.\nFaith moves the mountain."' },
-      { section: 'SCRIPTURE', text: 'For verily I say unto you, That whosoever\nshall say unto this mountain, Be thou removed,\nand shall not doubt in his heart,\nhe shall have whatsoever he saith.\n— Mark 11:23' },
-      { section: 'CLOSING', text: '"Stop crying about the impossibility\nand speak to it in the Name of Jesus Christ.\nFor with God, nothing shall be impossible."' },
-    ]
-  },
-  {
-    id: 'be05',
-    title: 'Hebrews Chapter Six',
-    date: '1957-09-01', code: '57-0901M',
-    topic: 'grace',
-    preview: 'The grace of God is the only anchor the soul has in the storms of life.',
-    content: [
-      { section: 'OPENING', text: '"Which hope we have as an anchor\nof the soul, both sure and stedfast,\nand which entereth into that within the veil."\n— Hebrews 6:19' },
-      { section: 'QUOTE 1', text: '"Grace — it is not what you have done.\nIt is what He has done.\nYou cannot earn it; you can only receive it."' },
-      { section: 'QUOTE 2', text: '"The anchor holds in the storm.\nNot because of your strength,\nbut because of His faithfulness."' },
-      { section: 'SCRIPTURE', text: 'For by grace are ye saved through faith;\nand that not of yourselves:\nit is the gift of God:\nNot of works, lest any man should boast.\n— Ephesians 2:8-9' },
-      { section: 'CLOSING', text: '"His grace is sufficient for thee.\nHis strength is made perfect in weakness.\nHe will never leave thee nor forsake thee."' },
-    ]
-  },
-  {
-    id: 'be06',
-    title: 'Divine Healing',
-    date: '1961-02-26', code: '61-0226',
-    topic: 'healing',
-    preview: 'Jesus bore our sicknesses so that we could walk in divine health.',
-    content: [
-      { section: 'OPENING', text: '"Surely he hath borne our griefs,\nand carried our sorrows."\n— Isaiah 53:4' },
-      { section: 'QUOTE 1', text: '"The same Jesus who healed the blind Bartimaeus,\nwho raised Lazarus from the dead —\nHe is here tonight, and He is still healing."' },
-      { section: 'QUOTE 2', text: '"Divine healing is not a denomination;\nit is not a movement.\nIt is a Person — Jesus Christ."' },
-      { section: 'SCRIPTURE', text: 'Who his own self bare our sins in his own body\non the tree, that we, being dead to sins,\nshould live unto righteousness:\nby whose stripes ye were healed.\n— 1 Peter 2:24' },
-      { section: 'CLOSING', text: '"He bore it — past tense.\nYe were healed — past tense.\nReceive it now by faith — present tense."' },
-    ]
-  },
-  {
-    id: 'be07',
-    title: 'Only Believe',
-    date: '1953-11-08', code: '53-1108A',
-    topic: 'faith',
-    preview: 'Only believe, and all things are possible to him that believeth.',
-    content: [
-      { section: 'OPENING', text: '"If thou canst believe,\nall things are possible\nto him that believeth."\n— Mark 9:23' },
-      { section: 'SONG', text: 'Only believe, only believe,\nAll things are possible, only believe;\nOnly believe, only believe,\nAll things are possible, only believe.' },
-      { section: 'QUOTE 1', text: '"It is not your great faith that moves mountains.\nIt is your faith in a great God.\nHe does the moving."' },
-      { section: 'QUOTE 2', text: '"The woman with the issue of blood\ndidn\'t have great faith.\nBut she had faith enough to press through\nand touch the hem of His garment."' },
-      { section: 'CLOSING', text: '"Only believe. Just that simple.\nGod does not require eloquence or perfection —\nonly a heart that believes."' },
-    ]
-  },
-  {
-    id: 'be08',
-    title: 'The Seal of God',
-    date: '1954-05-14', code: '54-0514',
-    topic: 'holy spirit',
-    preview: 'The seal of the Holy Spirit is the guarantee of our redemption.',
-    content: [
-      { section: 'OPENING', text: '"And grieve not the holy Spirit of God,\nwhereby ye are sealed\nunto the day of redemption."\n— Ephesians 4:30' },
-      { section: 'QUOTE 1', text: '"The Holy Spirit is God\'s seal.\nWhen He seals you, the devil\ncannot break that seal.\nGod\'s seal cannot be broken."' },
-      { section: 'QUOTE 2', text: '"You are not your own;\nyou are bought with a price.\nAnd God has put His seal upon you —\nHis Holy Spirit."' },
-      { section: 'SCRIPTURE', text: 'In whom ye also trusted, after that ye heard\nthe word of truth, the gospel of your salvation:\nin whom also after that ye believed,\nye were sealed with that holy Spirit of promise.\n— Ephesians 1:13' },
-      { section: 'CLOSING', text: '"Sealed. Secured. Safe in His hands.\nNeither death, nor life, nor angels,\nnor principalities — nothing shall separate us\nfrom the love of God."' },
-    ]
-  },
+
 ];
 
 /* Build year filter dropdown */
@@ -6292,7 +6181,7 @@ function pushClockToProj(str) {
   clockEl.style.cssText = `
     position:fixed;
     ${posMap[CLOCK_STATE.pos] || posMap.br}
-    font-family:'Cinzel',serif;
+    font-family:'Arial',serif;
     font-size:${parseInt(CLOCK_STATE.size) * 1.8}px;
     color:${CLOCK_STATE.color};
     letter-spacing:2px;
@@ -6308,7 +6197,7 @@ function injectProjClockStyle(d) {
   if (d.getElementById('bw-clock-style')) return;
   const s = d.createElement('style');
   s.id    = 'bw-clock-style';
-  s.textContent = `@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap');`;
+  s.textContent = `@import url('https://fonts.googleapis.com/css2?family=Arial:wght@400;600&display=swap');`;
   d.head.appendChild(s);
 }
 
@@ -6393,7 +6282,7 @@ const PRESET_TEMPLATES = [
     name: 'Regal Gold',
     tag: 'Dark',
     bg: 'radial-gradient(ellipse at center,#1a1408 0%,#060400 100%)',
-    font: 'Cinzel', textColor: '#fef8e8', titleColor: '#e8c97a',
+    font: 'Arial', textColor: '#fef8e8', titleColor: '#e8c97a',
     footerColor: '#7a6230', align: 'center', shadow: 'glow',
     lineSpacing: '1.65', grid: true, corners: true, footer: true, vignette: true,
     watermark: '✦', watermarkColor: '#c9a84c11',
@@ -6413,7 +6302,7 @@ const PRESET_TEMPLATES = [
     name: 'Crimson Fire',
     tag: 'Dark',
     bg: 'radial-gradient(ellipse at center,#1a0808 0%,#080202 100%)',
-    font: 'Cinzel', textColor: '#fef0f0', titleColor: '#e05050',
+    font: 'Arial', textColor: '#fef0f0', titleColor: '#e05050',
     footerColor: '#7a3030', align: 'center', shadow: 'glow',
     lineSpacing: '1.65', grid: false, corners: true, footer: true, vignette: true,
     watermark: '', watermarkColor: '#e0505011',
@@ -6463,7 +6352,7 @@ const PRESET_TEMPLATES = [
     name: 'Dark Teal',
     tag: 'Dark',
     bg: 'radial-gradient(ellipse at center,#041418 0%,#020a0c 100%)',
-    font: 'Cinzel', textColor: '#e0f8f8', titleColor: '#40c0c0',
+    font: 'Arial', textColor: '#e0f8f8', titleColor: '#40c0c0',
     footerColor: '#205050', align: 'center', shadow: 'glow',
     lineSpacing: '1.65', grid: true, corners: true, footer: true, vignette: false,
     watermark: '', watermarkColor: '#40c0c011',
@@ -6633,7 +6522,7 @@ function applyTemplateObject(t) {
   S.format.lineHeight  = t.lineSpacing;
 
   // Sync right-panel controls
-  const fontMap = {'Playfair Display':'playfair','Cinzel':'cinzel','Lato':'lato','Arial, sans-serif':'sans'};
+  const fontMap = {'Playfair Display':'playfair','Arial':'Arial','Lato':'lato','Arial, sans-serif':'sans'};
   const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
   setVal('font-sel',      fontMap[t.font] || 'playfair');
   setVal('fmt-shadow',    t.shadow);
@@ -6820,7 +6709,7 @@ function previewTemplate() {
   const titleEl = document.getElementById('tmpl-mini-title');
   if (titleEl) {
     titleEl.style.color      = titleColor;
-    titleEl.style.fontFamily = `'Cinzel', serif`;
+    titleEl.style.fontFamily = `'Arial', serif`;
   }
 
   const wmEl = document.getElementById('tmpl-mini-watermark');
