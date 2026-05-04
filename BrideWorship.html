@@ -91,30 +91,7 @@
         </select>
       </div>
 
-      <!-- Bible navigator -->
-     <div class="bible-nav-row">
-          <label class="bible-nav-lbl">Chapter</label> 
-          <select class="bible-nav-sel" id="bib-ch" onchange="onBibChapterChange()"></select>
-          <label class="bible-nav-lbl" style="margin-left:6px;">Verse</label>
-          <select class="bible-nav-sel bib-vs-sel" id="bib-vs-from"
-            onchange="onBibFromChange()"></select>
-          <label class="bible-nav-lbl" id="bib-to-lbl">–</label>
-          <select class="bible-nav-sel bib-vs-sel" id="bib-vs-to">
-            <option value="same">—</option>
-          </select>
-        </div>
-        <div class="bible-nav-row" style="gap:4px;">
-          <label style="font-size:9px;color:var(--text-3);display:flex;align-items:center;gap:4px;cursor:pointer;white-space:nowrap;">
-            <input type="checkbox" id="bib-multi-verse" onchange="onBibMultiToggle()">
-            Multi-verse range
-          </label>
-        </div>
-        <div class="bible-nav-row">
-          <button class="sc-add" style="flex:2;" onclick="fetchBiblePassage()">📖 Load Passage</button>
-          <button class="sc-add"
-            style="flex:1;background:var(--bg-card);border:1px solid var(--border-dim);color:var(--text-2);"
-            onclick="loadFullBibleChapter()">Full Ch.</button>
-        </div>
+     
 
       <!-- Search -->
       <div class="bible-search-bar">
@@ -1922,5 +1899,6 @@
 <script src="js/fix25.js"></script>
 <script src="js/preview-fix.js"></script>
 <script src="js/fix26.js"></script>
+<script src="js/fix27-bible-import.js"></script>
 </body>
 </html>
