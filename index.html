@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BrideWorship Pro — Loading</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Arial:wght@400;600;700;900&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
 
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -104,7 +104,7 @@
     }
 
     #logo-title {
-      font-family: 'Cinzel', serif;
+      font-family: 'Arial', serif;
       font-size: 28px;
       font-weight: 700;
       letter-spacing: 6px;
@@ -114,10 +114,11 @@
     }
 
     #logo-sub {
-      font-family: 'Cinzel', serif;
+      font-family: 'Arial', serif;
       font-size: 10px;
+      font-weight: 900;
       letter-spacing: 5px;
-      color: var(--gold-dim);
+      color: var(--text);
       text-transform: uppercase;
     }
 
@@ -174,14 +175,15 @@
     .slide.active .slide-caption { transform: translateY(0); }
 
     .caption-label {
-      font-family: 'Cinzel', serif;
-      font-size: 8px;
+      font-family: 'Arial', serif;
+      font-size: 11px;
+      font-weight: 900;
       letter-spacing: 4px;
-      color: var(--gold);
+      color: rgb(6, 252, 6);
       text-transform: uppercase;
     }
     .caption-title {
-      font-family: 'Cinzel', serif;
+      font-family: 'Arial', serif;
       font-size: 15px;
       letter-spacing: 2px;
       color: var(--text);
@@ -264,7 +266,7 @@
 
     /* Loading text */
     #loading-text {
-      font-family: 'Cinzel', serif;
+      font-family: 'Arial', serif;
       font-size: 9px;
       letter-spacing: 4px;
       color: var(--gold-dim);
@@ -330,22 +332,11 @@
       <div id="logo-mark">✦ ✦ ✦</div>
       <div id="logo-title">BrideWorship <span style="color:var(--gold);font-weight:900;">Pro</span></div>
       <div class="divider"></div>
-      <div id="logo-sub">For The Edifying Of The Bride Of Christ</div>
+      <div id="logo-sub">For Edifying The Bride Of Christ</div>
     </div>
 
     <!-- Image carousel -->
     <div id="carousel">
-
-      <!--
-        SLIDES 1–7
-        Replace  data-bg="images/slide1.jpg"  with your actual image paths.
-        You can use:
-          • Relative paths:   data-bg="images/worship1.jpg"
-          • Absolute paths:   data-bg="/assets/slide1.jpg"
-          • Full URLs:        data-bg="https://example.com/img.jpg"
-        The caption-label and caption-title are customisable below.
-      -->
-
       <div class="slide" data-bg="images/Apostle Paul 2.jpg">
         <div class="slide-caption">
           <div class="caption-label">The First Messenger To The Gentile Church Age - Apostle Paul AD 57-170 <b>EPHESUS</b></div>
@@ -412,8 +403,8 @@
 
     /* ── Config ────────────────────────────────────── */
     const SLIDE_COUNT   = 7;
-    const MS_PER_SLIDE  = 2000;          /* 2 s per image */
-    const TOTAL_MS      = SLIDE_COUNT * MS_PER_SLIDE; /* 14 s */
+    const MS_PER_SLIDE  = 1000;          /* 1 s per image */
+    const TOTAL_MS      = SLIDE_COUNT * MS_PER_SLIDE; /* 7 s */
     const TICK_MS       = 50;            /* bar update interval */
 
     const LOADING_MESSAGES = [
