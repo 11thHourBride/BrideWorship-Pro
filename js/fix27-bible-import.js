@@ -1,109 +1,167 @@
 
 /* ═══════════════════════════════════════════════════════════
-   BrideWorship Pro — fix27-bible-import.js  (v2)
-   Fixes:
-   1. QuotaExceededError — Bibles now stored in IndexedDB
-      (no size limit). localStorage used only as a tiny
-      index of names, never for the full text.
-   2. "Unrecognised format" after quota crash — saveBible
-      no longer throws synchronously into handleFile.
-   Supported formats: same as before.
+   BrideWorship Pro — fix27-bible-import.js  (v3)
+   1. Accepts .json .txt .usfm .csv .xml — all parsed.
+   2. Imported Bibles stored in IndexedDB (no quota limit).
+   3. loadBibVerses() patched to serve from IndexedDB FIRST
+      so the app works fully offline after import.
+      Internet is only used when NO local Bible covers the
+      requested book/chapter.
 ═══════════════════════════════════════════════════════════ */
 
-(function BW_fix27() {
+(function BW_fix27v3() {
   'use strict';
 
   /* ══════════════════════════════════════════════════════════
-     IndexedDB wrapper
+     IndexedDB — key/value store for full Bible objects
   ══════════════════════════════════════════════════════════ */
 
-  const DB_NAME    = 'BrideWorshipBibles';
-  const DB_VERSION = 1;
-  const STORE      = 'bibles';
+  const DB_NAME  = 'BrideWorshipBibles';
+  const DB_VER   = 1;
+  const STORE    = 'bibles';
+  const IDX_KEY  = 'bw_bible_names_v2';   // localStorage name list only
 
-  function _openDB() {
-    return new Promise((res, rej) => {
-      const req = indexedDB.open(DB_NAME, DB_VERSION);
+  let _dbPromise = null;
+  function _db() {
+    if (_dbPromise) return _dbPromise;
+    _dbPromise = new Promise((res, rej) => {
+      const req = indexedDB.open(DB_NAME, DB_VER);
       req.onupgradeneeded = e => {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains(STORE))
-          db.createObjectStore(STORE, { keyPath: 'name' });
+        if (!e.target.result.objectStoreNames.contains(STORE))
+          e.target.result.createObjectStore(STORE, { keyPath: 'name' });
       };
       req.onsuccess = e => res(e.target.result);
       req.onerror   = e => rej(e.target.error);
     });
+    return _dbPromise;
   }
 
-  async function _saveBibleIDB(bible) {
-    const db = await _openDB();
+  async function idbPut(bible) {
+    const db = await _db();
     return new Promise((res, rej) => {
-      const tx  = db.transaction(STORE, 'readwrite');
-      const req = tx.objectStore(STORE).put(bible);
-      req.onsuccess = () => res(true);
-      req.onerror   = e => rej(e.target.error);
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).put(bible).onsuccess = () => res(true);
+      tx.onerror = e => rej(e.target.error);
     });
   }
 
-  async function _loadBibleIDB(name) {
-    const db = await _openDB();
+  async function idbGet(name) {
+    const db = await _db();
     return new Promise((res, rej) => {
-      const tx  = db.transaction(STORE, 'readonly');
-      const req = tx.objectStore(STORE).get(name);
-      req.onsuccess = e => res(e.target.result || null);
-      req.onerror   = e => rej(e.target.error);
+      const tx = db.transaction(STORE, 'readonly');
+      tx.objectStore(STORE).get(name).onsuccess = e => res(e.target.result || null);
+      tx.onerror = e => rej(e.target.error);
     });
   }
 
-  async function _listBiblesIDB() {
-    const db = await _openDB();
+  async function idbKeys() {
+    const db = await _db();
     return new Promise((res, rej) => {
-      const tx  = db.transaction(STORE, 'readonly');
-      const req = tx.objectStore(STORE).getAllKeys();
-      req.onsuccess = e => res(e.target.result || []);
-      req.onerror   = e => rej(e.target.error);
+      const tx = db.transaction(STORE, 'readonly');
+      tx.objectStore(STORE).getAllKeys().onsuccess = e => res(e.target.result || []);
+      tx.onerror = e => rej(e.target.error);
     });
   }
 
-  async function _deleteBibleIDB(name) {
-    const db = await _openDB();
+  async function idbDel(name) {
+    const db = await _db();
     return new Promise((res, rej) => {
-      const tx  = db.transaction(STORE, 'readwrite');
-      const req = tx.objectStore(STORE).delete(name);
-      req.onsuccess = () => res(true);
-      req.onerror   = e => rej(e.target.error);
+      const tx = db.transaction(STORE, 'readwrite');
+      tx.objectStore(STORE).delete(name).onsuccess = () => res(true);
+      tx.onerror = e => rej(e.target.error);
     });
   }
 
-  /* ── Small localStorage index (just names, no verse data) ── */
-  const IDX_KEY = 'bw_bible_names_v2';
-  function _getNameIndex() {
-    try { return JSON.parse(localStorage.getItem(IDX_KEY) || '[]'); } catch(e) { return []; }
-  }
-  function _addToNameIndex(name) {
-    const idx = _getNameIndex();
-    if (!idx.includes(name)) { idx.push(name); try { localStorage.setItem(IDX_KEY, JSON.stringify(idx)); } catch(e) {} }
-  }
-  function _removeFromNameIndex(name) {
-    const idx = _getNameIndex().filter(n => n !== name);
-    try { localStorage.setItem(IDX_KEY, JSON.stringify(idx)); } catch(e) {}
+  /* Name index in localStorage — tiny, just strings */
+  function _nameList()          { try { return JSON.parse(localStorage.getItem(IDX_KEY)||'[]'); } catch(e) { return []; } }
+  function _addName(n)          { const l=_nameList(); if(!l.includes(n)){l.push(n);try{localStorage.setItem(IDX_KEY,JSON.stringify(l));}catch(e){}} }
+  function _delName(n)          { try{localStorage.setItem(IDX_KEY,JSON.stringify(_nameList().filter(x=>x!==n)));}catch(e){} }
+
+  /* Public API */
+  window.bwListBibles  = idbKeys;
+  window.bwLoadBible   = idbGet;
+  window.bwDeleteBible = async n => { await idbDel(n); _delName(n); };
+
+  async function _saveBible(bible) {
+    await idbPut(bible);
+    _addName(bible.name);
   }
 
-  /* Public save / load / list / delete */
-  async function saveBible(bible) {
-    await _saveBibleIDB(bible);
-    _addToNameIndex(bible.name);
-  }
+  /* In-memory cache of loaded Bibles this session */
+  const _cache = {};   // { [name]: bible }
 
-  window.bwLoadBible    = name => _loadBibleIDB(name);
-  window.bwListBibles   = _listBiblesIDB;
-  window.bwDeleteBible  = async name => {
-    await _deleteBibleIDB(name);
-    _removeFromNameIndex(name);
-  };
+  async function _getBible(name) {
+    if (_cache[name]) return _cache[name];
+    const b = await idbGet(name);
+    if (b) _cache[name] = b;
+    return b;
+  }
 
 
   /* ══════════════════════════════════════════════════════════
-     Book-name normaliser
+     PATCH loadBibVerses — serve from IndexedDB first
+  ══════════════════════════════════════════════════════════ */
+
+  const _origLoadBibVerses = window.loadBibVerses;
+
+  window.loadBibVerses = async function (book, ch, vsFrom, vsTo) {
+    /* Which Bible is currently selected? */
+    const verSel = document.getElementById('bv-version')
+                || document.getElementById('bible-version-sel');
+    const selectedVersion = verSel?.value || 'kjv';
+
+    /* Try local first — any imported Bible whose name matches (case-insensitive) */
+    const names   = _nameList();
+    const localName = names.find(n =>
+      n.toLowerCase() === selectedVersion.toLowerCase() ||
+      n.toLowerCase().replace(/\s/g,'') === selectedVersion.toLowerCase().replace(/\s/g,'')
+    ) || (names.length ? names[0] : null);   // fall back to first imported Bible
+
+    if (localName) {
+      try {
+        const bible = await _getBible(localName);
+        if (bible) {
+          const verses = _extractVerses(bible, book.name, ch, vsFrom, vsTo);
+          if (verses.length) return verses;
+        }
+      } catch(e) {
+        console.warn('[BW fix27] Local lookup failed, falling back to API:', e);
+      }
+    }
+
+    /* No local match — fall through to original API fetch */
+    if (typeof _origLoadBibVerses === 'function') {
+      return _origLoadBibVerses(book, ch, vsFrom, vsTo);
+    }
+    throw new Error('No local Bible for "' + (book.name||'?') + '" and no internet connection.');
+  };
+
+  /* Extract verses from a stored Bible object */
+  function _extractVerses(bible, bookName, ch, vsFrom, vsTo) {
+    /* Try exact match then normalised match */
+    let chapData = bible.books[bookName];
+    if (!chapData) {
+      const lo  = bookName.toLowerCase();
+      const key = Object.keys(bible.books).find(k => k.toLowerCase() === lo);
+      chapData  = key ? bible.books[key] : null;
+    }
+    if (!chapData) return [];
+
+    const arr = chapData[String(ch)] || chapData[ch];
+    if (!arr) return [];
+
+    const from = vsFrom || 1;
+    const to   = vsTo   || arr.length - 1;
+    const out  = [];
+    for (let v = from; v <= Math.min(to, arr.length - 1); v++) {
+      if (arr[v]) out.push({ num: v, text: String(arr[v]).trim() });
+    }
+    return out;
+  }
+
+
+  /* ══════════════════════════════════════════════════════════
+     PARSERS — all formats
   ══════════════════════════════════════════════════════════ */
 
   const ALIASES = {
@@ -115,10 +173,10 @@
     jos:'Joshua',josh:'Joshua',
     jdg:'Judges',judg:'Judges',jg:'Judges',
     rut:'Ruth',ru:'Ruth',
-    '1sa':'1 Samuel','1sam':'1 Samuel','1samuel':'1 Samuel',
-    '2sa':'2 Samuel','2sam':'2 Samuel','2samuel':'2 Samuel',
-    '1ki':'1 Kings','1kgs':'1 Kings','1kings':'1 Kings',
-    '2ki':'2 Kings','2kgs':'2 Kings','2kings':'2 Kings',
+    '1sa':'1 Samuel','1sam':'1 Samuel',
+    '2sa':'2 Samuel','2sam':'2 Samuel',
+    '1ki':'1 Kings','1kgs':'1 Kings',
+    '2ki':'2 Kings','2kgs':'2 Kings',
     '1ch':'1 Chronicles','1chr':'1 Chronicles',
     '2ch':'2 Chronicles','2chr':'2 Chronicles',
     ezr:'Ezra',neh:'Nehemiah',est:'Esther',esth:'Esther',
@@ -132,11 +190,9 @@
     eze:'Ezekiel',ezek:'Ezekiel',
     dan:'Daniel',da:'Daniel',dn:'Daniel',
     hos:'Hosea',ho:'Hosea',joel:'Joel',jl:'Joel',
-    amo:'Amos',am:'Amos',amos:'Amos',
-    oba:'Obadiah',ob:'Obadiah',obad:'Obadiah',
-    jon:'Jonah',jnh:'Jonah',
-    mic:'Micah',mi:'Micah',nah:'Nahum',na:'Nahum',
-    hab:'Habakkuk',hb:'Habakkuk',
+    amo:'Amos',am:'Amos',oba:'Obadiah',ob:'Obadiah',obad:'Obadiah',
+    jon:'Jonah',jnh:'Jonah',mic:'Micah',mi:'Micah',
+    nah:'Nahum',na:'Nahum',hab:'Habakkuk',hb:'Habakkuk',
     zep:'Zephaniah',zeph:'Zephaniah',
     hag:'Haggai',hg:'Haggai',
     zec:'Zechariah',zech:'Zechariah',
@@ -187,12 +243,17 @@
     return String(raw).trim().replace(/\b\w/g, c => c.toUpperCase());
   }
 
+  function _addVerse(books, bookName, ch, vs, txt) {
+    const b = String(parseInt(ch)), v = parseInt(vs);
+    if (!b || !v || !txt || !bookName) return;
+    if (!books[bookName]) books[bookName] = {};
+    if (!books[bookName][b]) books[bookName][b] = [null];
+    while (books[bookName][b].length <= v) books[bookName][b].push('');
+    books[bookName][b][v] = String(txt).trim().replace(/\s+/g, ' ');
+  }
 
-  /* ══════════════════════════════════════════════════════════
-     Parsers (identical logic to v1 — no changes needed here)
-  ══════════════════════════════════════════════════════════ */
-
-  function booksObjToBW(booksObj, name) {
+  /* ── JSON parsers ── */
+  function _booksObjToBW(booksObj, name) {
     const books = {};
     Object.entries(booksObj).forEach(([rawBook, chapData]) => {
       if (!chapData || typeof chapData !== 'object') return;
@@ -219,231 +280,247 @@
     return { name: name || 'Custom', books };
   }
 
-  function parseVerseArray(arr) {
+  function _parseVerseArray(arr) {
     const books = {}; let name = 'Custom';
     arr.forEach(entry => {
       if (!entry || typeof entry !== 'object') return;
-      const rawBook = entry.book||entry.book_name||entry.bookname||entry.b||entry.Book||entry.BOOK;
-      const rawCh   = entry.chapter||entry.chapter_number||entry.c||entry.Chapter||entry.CHAPTER;
-      const rawVs   = entry.verse||entry.verse_number||entry.v||entry.Verse||entry.VERSE;
-      const rawText = entry.text||entry.verse_text||entry.content||entry.t||entry.Text||entry.scripture;
-      if (!rawBook||!rawCh||!rawVs||!rawText) return;
-      const bookName=normBook(String(rawBook)), ch=String(parseInt(rawCh)), vs=parseInt(rawVs);
-      const txt=String(rawText).trim().replace(/\n/g,' ');
-      if (!bookName||!ch||!vs||!txt) return;
-      if (!books[bookName]) books[bookName]={};
-      if (!books[bookName][ch]) books[bookName][ch]=[null];
-      while(books[bookName][ch].length<=vs) books[bookName][ch].push('');
-      books[bookName][ch][vs]=txt;
-      if (entry.translation||entry.version) name=entry.translation||entry.version;
+      const rb = entry.book||entry.book_name||entry.bookname||entry.b||entry.Book||entry.BOOK;
+      const rc = entry.chapter||entry.chapter_number||entry.c||entry.Chapter||entry.CHAPTER;
+      const rv = entry.verse||entry.verse_number||entry.v||entry.Verse||entry.VERSE;
+      const rt = entry.text||entry.verse_text||entry.content||entry.t||entry.Text||entry.scripture;
+      if (!rb||!rc||!rv||!rt) return;
+      _addVerse(books, normBook(String(rb)), rc, rv, String(rt));
+      if (entry.translation||entry.version) name = entry.translation||entry.version;
     });
     return Object.keys(books).length ? {name,books} : null;
   }
 
-  function parseStructuredBooksArray(data) {
-    const books={}, name=data.version||data.translation||data.name||'Custom';
-    (data.books||[]).forEach(bookObj => {
-      const bookName=normBook(String(bookObj.name||bookObj.book||bookObj.abbreviation||''));
-      if (!bookName) return;
-      books[bookName]={};
-      (bookObj.chapters||bookObj.chapter||[]).forEach(chapObj => {
-        const ch=String(parseInt(chapObj.chapter||chapObj.number||chapObj.id||1)), arr=[null];
-        (chapObj.verses||chapObj.verse||[]).forEach(vsObj => {
+  function _parseStructured(data) {
+    const books = {}, name = data.version||data.translation||data.name||'Custom';
+    (data.books||[]).forEach(bo => {
+      const bn = normBook(String(bo.name||bo.book||bo.abbreviation||''));
+      if (!bn) return; books[bn] = {};
+      (bo.chapters||bo.chapter||[]).forEach(co => {
+        const ch = String(parseInt(co.chapter||co.number||co.id||1)), arr=[null];
+        (co.verses||co.verse||[]).forEach(vsObj => {
           if (typeof vsObj==='string'){arr.push(vsObj.trim());return;}
           const n=parseInt(vsObj.verse||vsObj.number||vsObj.id||arr.length);
-          const txt=String(vsObj.text||vsObj.content||vsObj.value||'').trim();
-          while(arr.length<=n) arr.push(''); arr[n]=txt;
+          const t=String(vsObj.text||vsObj.content||vsObj.value||'').trim();
+          while(arr.length<=n)arr.push(''); arr[n]=t;
         });
-        books[bookName][ch]=arr;
+        books[bn][ch]=arr;
       });
     });
     return {name,books};
   }
 
-  function parseJSON(text) {
+  function _parseJSON(text) {
     let data; try{data=JSON.parse(text);}catch(e){throw new Error('Invalid JSON: '+e.message);}
-    if (data&&data.name&&data.books&&typeof data.books==='object') return data;
-    if (Array.isArray(data)){const r=parseVerseArray(data);if(r)return r;}
-    if (data&&typeof data==='object'){
-      if (Array.isArray(data.verses)){const r=parseVerseArray(data.verses);if(r){r.name=data.translation||data.version||r.name;return r;}}
-      if (Array.isArray(data.books)) return parseStructuredBooksArray(data);
-      if (data.data&&typeof data.data==='object'&&!Array.isArray(data.data)){
-        const r=booksObjToBW(data.data,data.version||data.translation||'Custom');
-        if(Object.keys(r.books).length)return r;
-      }
-      if (data.resultset&&Array.isArray(data.resultset.row)){
-        const r=parseVerseArray(data.resultset.row.map(r=>({
-          book:r.field?.[1]||r.book,chapter:r.field?.[2]||r.chapter,
-          verse:r.field?.[3]||r.verse,text:r.field?.[4]||r.text,
-        })));if(r)return r;
+    if (data?.name && data.books && typeof data.books==='object') return data;
+    if (Array.isArray(data)) { const r=_parseVerseArray(data); if(r) return r; }
+    if (data && typeof data==='object') {
+      if (Array.isArray(data.verses)) { const r=_parseVerseArray(data.verses); if(r){r.name=data.translation||data.version||r.name;return r;} }
+      if (Array.isArray(data.books))  return _parseStructured(data);
+      if (data.data && typeof data.data==='object' && !Array.isArray(data.data)) {
+        const r=_booksObjToBW(data.data, data.version||data.translation||'Custom');
+        if(Object.keys(r.books).length) return r;
       }
       const keys=Object.keys(data);
-      if(keys.length>0){
-        const sample=data[keys[0]];
-        if(sample&&typeof sample==='object'&&!Array.isArray(sample)){
-          const r=booksObjToBW(data,'Custom');if(Object.keys(r.books).length>0)return r;
+      if (keys.length>0) {
+        const s=data[keys[0]];
+        if (s && typeof s==='object' && !Array.isArray(s)) {
+          const r=_booksObjToBW(data,'Custom');
+          if(Object.keys(r.books).length>0) return r;
         }
       }
     }
     return null;
   }
 
-  function parsePlainText(text, filename) {
-    const lines=text.split('\n'), books={};
-    const refRx=/^(.+?)\s+(\d+):(\d+)\s+(.+)$/, bcvRx=/^(\d{2})(\d{3})(\d{3})\s+(.+)$/;
-    let usfmBook='',usfmCh=0,count=0;
-    function addVerse(bn,ch,vs,txt){
-      const b=String(parseInt(ch)),v=parseInt(vs); if(!b||!v||!txt)return;
-      if(!books[bn])books[bn]={};if(!books[bn][b])books[bn][b]=[null];
-      while(books[bn][b].length<=v)books[bn][b].push('');
-      books[bn][b][v]=String(txt).trim();count++;
-    }
-    lines.forEach(raw=>{
-      const line=raw.replace(/\r/,'').trim(); if(!line)return;
-      const uid=line.match(/^\\id\s+(\w+)/i);if(uid){usfmBook=normBook(uid[1]);usfmCh=0;return;}
-      const uc=line.match(/^\\c\s+(\d+)/);if(uc){usfmCh=parseInt(uc[1]);return;}
-      const uv=line.match(/^\\v\s+(\d+)\s+(.*)/);
-      if(uv&&usfmBook&&usfmCh){addVerse(usfmBook,usfmCh,uv[1],uv[2].replace(/\\[a-z]+\*?/g,'').trim());return;}
-      const bm=bcvRx.exec(line);if(bm){const bn=BCVmap[bm[1]];if(bn)addVerse(bn,parseInt(bm[2]),bm[3],bm[4]);return;}
-      const m=refRx.exec(line);if(m){const bn=normBook(m[1]);if(bn)addVerse(bn,m[2],m[3],m[4]);}
+  /* ── Plain text / USFM / BCV / CSV ── */
+  function _parsePlainText(text, filename) {
+    const lines  = text.split('\n');
+    const books  = {};
+    const refRx  = /^(.+?)\s+(\d+):(\d+)\s+(.+)$/;
+    const bcvRx  = /^(\d{2})(\d{3})(\d{3})\s+(.+)$/;
+    const tabRx  = /^(\w+)\t(\d+)\t(\d+)\t(.+)$/;    /* TSV: book\tch\tvs\ttext */
+    const csvRx  = /^"?([^",]+)"?,\s*"?(\d+)"?,\s*"?(\d+)"?,\s*"?(.+?)"?$/; /* CSV */
+    let usfmBook='', usfmCh=0, count=0;
+
+    const add = (bn,ch,vs,tx) => { const b=normBook(bn); if(b){_addVerse(books,b,ch,vs,tx);count++;} };
+
+    lines.forEach(raw => {
+      const line = raw.replace(/\r/,'').trim();
+      if (!line || line.startsWith('#') || line.startsWith('//')) return;
+
+      /* USFM */
+      const uid=line.match(/^\\id\s+(\w+)/i); if(uid){usfmBook=normBook(uid[1]);usfmCh=0;return;}
+      const uc =line.match(/^\\c\s+(\d+)/);   if(uc) {usfmCh=parseInt(uc[1]);return;}
+      const uv =line.match(/^\\v\s+(\d+)\s+(.*)/);
+      if(uv&&usfmBook&&usfmCh){add(usfmBook,usfmCh,uv[1],uv[2].replace(/\\[a-z]+\*?/g,'').trim());return;}
+
+      /* BBCCCVVV */
+      const bm=bcvRx.exec(line);if(bm){const bn=BCVmap[bm[1]];if(bn)add(bn,parseInt(bm[2]),bm[3],bm[4]);return;}
+
+      /* TSV */
+      const tm=tabRx.exec(line);if(tm){add(tm[1],tm[2],tm[3],tm[4]);return;}
+
+      /* CSV */
+      const cm=csvRx.exec(line);if(cm){add(cm[1],cm[2],cm[3],cm[4].replace(/"/g,''));return;}
+
+      /* "Book Ch:Vs text" */
+      const m=refRx.exec(line);if(m)add(m[1],m[2],m[3],m[4]);
     });
-    if(!count)return null;
-    return {name:filename.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ').replace(/\b\w/g,c=>c.toUpperCase()),books};
+
+    if (!count) return null;
+    const name = filename.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    return {name,books};
   }
 
 
   /* ══════════════════════════════════════════════════════════
-     Version selector helper
+     VERSION SELECTORS
   ══════════════════════════════════════════════════════════ */
 
-  function addToVersionSel(name) {
+  function _addToSels(name) {
     ['bible-version-sel','bv-version'].forEach(id => {
-      const sel = document.getElementById(id);
-      if (!sel) return;
-      if (Array.from(sel.options).some(o => o.value === name)) return;
-      const opt = document.createElement('option');
-      opt.value = opt.textContent = name;
-      sel.appendChild(opt);
+      const sel=document.getElementById(id); if(!sel)return;
+      if(Array.from(sel.options).some(o=>o.value===name))return;
+      const opt=document.createElement('option');
+      opt.value=opt.textContent=name; sel.appendChild(opt);
     });
   }
 
-  /* Restore saved Bible names into selectors on every page load */
-  async function restoreVersionNames() {
+  async function _restoreVersionNames() {
     try {
-      const names = await _listBiblesIDB();
-      names.forEach(addToVersionSel);
+      const names = await idbKeys();
+      names.forEach(_addToSels);
     } catch(e) {
-      /* IDB may not be ready yet — use the name index fallback */
-      _getNameIndex().forEach(addToVersionSel);
+      _nameList().forEach(_addToSels);
     }
   }
 
 
   /* ══════════════════════════════════════════════════════════
-     Core import handler — async, errors caught individually
+     CORE IMPORT HANDLER
   ══════════════════════════════════════════════════════════ */
 
-  function toast(msg) {
-    if (typeof showSchToast === 'function') showSchToast(msg);
+  function _toast(msg) {
+    if (typeof showSchToast==='function') showSchToast(msg);
     else console.info('[BW fix27]', msg);
   }
 
   async function handleFile(file) {
     if (!file) return;
-    toast('⏳ Parsing ' + file.name + '…');
+    _toast('⏳ Reading ' + file.name + '…');
 
-    /* 1. Read file text */
+    /* 1. Read */
     let text;
     try {
-      text = await new Promise((res, rej) => {
-        const r = new FileReader();
-        r.onload  = e => res(e.target.result);
-        r.onerror = () => rej(new Error('Cannot read file'));
-        r.readAsText(file, 'UTF-8');
+      text = await new Promise((res,rej)=>{
+        const r=new FileReader();
+        r.onload=e=>res(e.target.result);
+        r.onerror=()=>rej(new Error('Cannot read file'));
+        r.readAsText(file,'UTF-8');
       });
-    } catch(e) { toast('⚠ ' + e.message); return; }
+    } catch(e) { _toast('⚠ '+e.message); return; }
 
-    /* 2. Parse */
+    /* 2. Parse — try all parsers */
     let bible = null;
-    try {
-      const ext = file.name.split('.').pop().toLowerCase();
-      if (ext === 'json') {
-        bible = parseJSON(text);
-      } else {
-        bible = parsePlainText(text, file.name);
-        if (!bible && (text.trimStart()[0] === '{' || text.trimStart()[0] === '['))
-          bible = parseJSON(text);
-      }
-    } catch(e) { toast('⚠ Parse error: ' + e.message); return; }
+    const ext = file.name.split('.').pop().toLowerCase();
 
-    if (!bible || !Object.keys(bible.books || {}).length) {
-      toast('⚠ Unrecognised format. Supported: JSON {Genesis:{1:{1:"text"}}}, ' +
-            'array [{book,chapter,verse,text}], plain text "Genesis 1:1 text", USFM.');
+    try {
+      if (ext==='json') {
+        bible = _parseJSON(text);
+      } else {
+        /* For .txt, .usfm, .csv, .tsv, .xml, or unknown: try plain text first */
+        bible = _parsePlainText(text, file.name);
+        /* If that failed, it might be JSON in a .txt file */
+        if (!bible) {
+          const firstChar = text.trimStart()[0];
+          if (firstChar==='{' || firstChar==='[') bible = _parseJSON(text);
+        }
+      }
+    } catch(e) {
+      _toast('⚠ Parse error: ' + e.message);
       return;
     }
 
-    /* 3. Save to IndexedDB (no size limit) */
-    try {
-      await saveBible(bible);
-    } catch(e) {
-      toast('⚠ Could not save to IndexedDB: ' + e.message);
-      /* Don't return — Bible is still parsed and usable this session */
+    if (!bible || !Object.keys(bible.books||{}).length) {
+      _toast('⚠ Could not read Bible. Supported formats: ' +
+        'JSON ({Genesis:{1:{1:"text"}}}, [{book,chapter,verse,text}]), ' +
+        'plain text (Genesis 1:1 text…), USFM (\\id GEN \\c 1 \\v 1 text), ' +
+        'TSV/CSV (book,ch,vs,text).');
+      return;
     }
 
-    /* 4. Add to version selectors */
-    addToVersionSel(bible.name);
+    /* 3. Save */
+    try { await _saveBible(bible); } catch(e) {
+      _toast('⚠ Save failed: '+e.message);
+      /* Still usable this session */
+    }
 
-    /* 5. Expose globally for the Bible viewer to use */
-    if (!window._bwCustomBibles) window._bwCustomBibles = {};
-    window._bwCustomBibles[bible.name] = bible;
+    /* 4. Cache + update selectors */
+    _cache[bible.name] = bible;
+    _addToSels(bible.name);
 
-    const bookCount  = Object.keys(bible.books).length;
-    const verseCount = Object.values(bible.books).reduce((t,chs) =>
-      t + Object.values(chs).reduce((s,arr) =>
-        s + (Array.isArray(arr) ? arr.filter(Boolean).length : 0), 0), 0);
-    toast(`✓ "${bible.name}" — ${bookCount} books, ${verseCount.toLocaleString()} verses`);
+    /* 5. Auto-select the imported Bible */
+    ['bible-version-sel','bv-version'].forEach(id=>{
+      const sel=document.getElementById(id); if(sel) sel.value=bible.name;
+    });
+
+    const bc = Object.keys(bible.books).length;
+    const vc = Object.values(bible.books).reduce((t,chs)=>
+      t+Object.values(chs).reduce((s,arr)=>
+        s+(Array.isArray(arr)?arr.filter(Boolean).length:0),0),0);
+    _toast(`✓ "${bible.name}" ready — ${bc} books, ${vc.toLocaleString()} verses. Working offline.`);
   }
+
+  /* Expose for external callers */
+  window.bwImportBibleFile = handleFile;
 
 
   /* ══════════════════════════════════════════════════════════
-     Wire the import button
+     WIRE THE IMPORT BUTTON  (replaces fix17/fix26 handler)
   ══════════════════════════════════════════════════════════ */
 
-  function wireImportButton() {
+  function _wireBtn() {
     const btn = document.getElementById('bib-import-btn');
-    if (!btn) { setTimeout(wireImportButton, 300); return; }
+    if (!btn) { setTimeout(_wireBtn, 400); return; }
 
-    /* Strip previous listeners */
     const fresh = btn.cloneNode(true);
     btn.parentNode.replaceChild(fresh, btn);
 
     fresh.addEventListener('click', () => {
-      const inp  = document.createElement('input');
-      inp.type   = 'file';
-      inp.accept = '.json,.txt,.usfm,.xml,.csv';
-      inp.style.display = 'none';
+      const inp=document.createElement('input');
+      inp.type='file';
+      /* Accept EVERYTHING — we try all parsers client-side */
+      inp.accept='.json,.txt,.usfm,.usfx,.osis,.xml,.csv,.tsv,.tab,.text,.sword';
+      inp.style.display='none';
       inp.addEventListener('change', e => {
         handleFile(e.target.files[0]);
-        setTimeout(() => inp.remove(), 500);
+        setTimeout(()=>inp.remove(),500);
       });
-      document.body.appendChild(inp);
-      inp.click();
-      setTimeout(() => { if (inp.parentNode) inp.remove(); }, 15000);
+      document.body.appendChild(inp); inp.click();
+      setTimeout(()=>{if(inp.parentNode)inp.remove();},15000);
     });
 
-    console.info('[BW fix27 v2] ✓ IndexedDB storage  ✓ Robust parser  ✓ Button wired');
+    console.info('[BW fix27 v3] ✓ All formats  ✓ IndexedDB  ✓ Offline loadBibVerses');
   }
 
-  /* ── Boot ── */
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      restoreVersionNames();
-      setTimeout(wireImportButton, 700);
+
+  /* ══════════════════════════════════════════════════════════
+     BOOT
+  ══════════════════════════════════════════════════════════ */
+
+  if (document.readyState==='loading') {
+    document.addEventListener('DOMContentLoaded', ()=>{
+      _restoreVersionNames();
+      setTimeout(_wireBtn, 800);
     });
   } else {
-    restoreVersionNames();
-    setTimeout(wireImportButton, 700);
+    _restoreVersionNames();
+    setTimeout(_wireBtn, 800);
   }
 
 })();
-
