@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   BrideWorship Pro — fix16.js
+   BrideWorship Pro — fix22.js
    Projection text: truly fills any screen at any ratio.
    Problems fixed:
    1. Virtual 1920×1080 canvas was CSS-scaled which made text
@@ -41,7 +41,7 @@
     #proj-scale-val {
       font-size: 11px; color: var(--gold, #c9a84c);
       min-width: 36px; text-align: center;
-      font-family: 'Cinzel', serif;
+      font-family: 'Arial', serif;
     }
     .psz-btn {
       width: 24px; height: 24px;
@@ -76,7 +76,7 @@
 
     return `<!DOCTYPE html><html><head>
 <meta charset="UTF-8">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Arial:wght@400;600;700&family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
@@ -98,7 +98,7 @@ html, body {
   position: relative; z-index: 2;
   flex-shrink: 0;
   padding: 1.2vh 4vw 0;
-  font-family: 'Cinzel', serif;
+  font-family: 'Arial', serif;
   font-size: clamp(10px, 1.6vh, 26px);
   letter-spacing: .35em;
   color: rgba(201,168,76,.8);
@@ -136,10 +136,11 @@ html, body {
   min-height: 3.5vh;
   display: flex; align-items: center; justify-content: center;
   padding: 0 4vw 1vh;
-  font-family: 'Cinzel', serif;
-  font-size: clamp(8px, 1.3vh, 20px);
+  font-weight: 900;
+  font-family: 'Arial', serif;
+  font-size: clamp(17px, 1.3vh, 50px);
   letter-spacing: .22em;
-  color: rgba(255,255,255,.25);
+  color: rgba(2, 247, 55, 0.95);
   text-transform: uppercase;
   text-align: center;
 }
@@ -150,6 +151,7 @@ html, body {
   padding: 1.5vh 3vw;
   display: none; text-align: center;
   font-size: clamp(14px, 2.8vh, 44px);
+  font-family: Arial, Serif;
   font-weight: 700; letter-spacing: .06em; color: #fff;
 }
 #proj-lt.visible    { display: block; }
