@@ -799,7 +799,7 @@
               <option value="18px">X-Large</option>
             </select>
           </div>
-          <div style="display:flex;gap:5px;align-items:center;">
+          <div style="display:flex;gap:5px;align-items:center; ;">
             <span class="fmt-label">Position:</span>
             <select class="fmt-select" id="clock-pos" style="flex:1;" onchange="updateClockSettings()">
               <option value="br" selected>Bottom Right</option>
@@ -1400,7 +1400,7 @@
 
         <div class="modal-row">
           <div class="modal-label">Speaker / Author</div>
-          <input class="modal-input" id="table-sermon-author" value="William Branham" placeholder="Speaker name">
+          <input class="modal-input" id="table-sermon-author" value="William Marrion Branham" placeholder="Speaker name">
         </div>
 
         <div class="modal-row">
@@ -1756,7 +1756,7 @@
               <div class="modal-label" style="font-size:9px;">Font</div>
               <select class="modal-input" id="tmpl-font" style="padding:5px 8px;" onchange="previewTemplate()">
                 <option value="Playfair Display">Playfair Display</option>
-                <option value="Arial">Arial Serif</option>
+                <option value="Arial" selected>Arial Serif</option>
                 <option value="Lato">Lato Sans</option>
                 <option value="Arial, sans-serif">System Sans</option>
               </select>
@@ -1900,5 +1900,8 @@
 <script src="js/preview-fix.js"></script>
 <script src="js/fix26.js"></script>
 <script src="js/fix27-bible-import.js"></script>
+<script src="js/fix28-media.js"></script>
+<script src="js/fix29.js"></script>
+
 </body>
 </html>
