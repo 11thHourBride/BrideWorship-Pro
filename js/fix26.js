@@ -299,6 +299,17 @@
       color: var(--gold, #c9a84c);
       border-radius: 2px; padding: 0 1px;
     }
+
+     /* Bible import button */
+    #bib-import-btn {
+      padding: 5px 9px;
+      background: var(--bg-card); border: 1px solid var(--border-dim);
+      border-radius: 4px; color: var(--text-2); font-size: 11px;
+      cursor: pointer; white-space: nowrap;
+      transition: background .1s, border-color .15s;
+      margin-top: 4px; width: 100%;
+    }
+    #bib-import-btn:hover { background: var(--bg-hover); border-color: var(--gold-dim); color: var(--gold); }
   `;
   document.head.appendChild(_style);
 
@@ -858,7 +869,7 @@
       document.body.classList.add('bible-mode');
       const tab = document.querySelectorAll('.ctab')[0];
       if (typeof centerTab === 'function') centerTab(tab, 'slides-view');
-      setTimeout(() => {
+      setTimeout(() => { 
         const inp = document.getElementById('bv-book-inp');
         if (inp) { inp.focus(); inp.select(); }
       }, 80);
@@ -925,6 +936,144 @@
     if (btn?.getAttribute('data-lib') === 'ls-scripture') setTimeout(_fixDropdowns, 80);
   };
 
+/* ══════════════════════════════════════════════════════════
+     BIBLE DATABASE IMPORT
+  ══════════════════════════════════════════════════════════ */
+
+  /* Storage for imported Bibles */
+  const BIB_KEY = 'bw_custom_bibles';
+
+  function _loadCustomBibles() {
+    try { return JSON.parse(localStorage.getItem(BIB_KEY) || '[]'); }
+    catch(e) { return []; }
+  }
+
+  function _addImportBtn() {
+    /* Add an import button to the bible navigator area */
+    const versionBar = document.querySelector('.bible-version-bar');
+    if (!versionBar || document.getElementById('bib-import-btn')) return;
+    const btn = document.createElement('button');
+    btn.id        = 'bib-import-btn';
+    btn.className = 'lib-icon-btn';
+    btn.textContent = '⬆ Import Bible';
+    btn.title     = 'Import a Bible database (.json, .txt)';
+    btn.addEventListener('click', _triggerBibleImport);
+    versionBar.insertAdjacentElement('afterend', btn);
+  }
+
+  function _triggerBibleImport() {
+    const inp = document.createElement('input');
+    inp.type    = 'file';
+    inp.accept  = '.json,.txt,.usfm,.xml';
+    inp.style.display = 'none';
+    inp.addEventListener('change', e => _handleBibleFile(e.target.files[0]));
+    document.body.appendChild(inp); inp.click();
+    setTimeout(() => inp.remove(), 12000);
+  }
+
+  async function _handleBibleFile(file) {
+    if (!file) return;
+    if (typeof showSchToast === 'function') showSchToast('⏳ Parsing ' + file.name + '…');
+    try {
+      const text = await new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload  = e => res(e.target.result);
+        r.onerror = () => rej(new Error('Could not read file'));
+        r.readAsText(file, 'UTF-8');
+      });
+
+      const ext  = file.name.split('.').pop().toLowerCase();
+      let   bible = null;
+
+      if (ext === 'json') {
+        bible = _parseBibleJSON(text);
+      } else {
+        bible = _parseBiblePlainText(text, file.name);
+      }
+
+      if (!bible) throw new Error('Unrecognised Bible format');
+
+      /* Save */
+      const list = _loadCustomBibles();
+      const existing = list.findIndex(b => b.name === bible.name);
+      if (existing >= 0) list[existing] = bible; else list.push(bible);
+      try { localStorage.setItem(BIB_KEY, JSON.stringify(list)); } catch(e) {
+        throw new Error('Storage full — try a smaller Bible file');
+      }
+
+      /* Add to version selector */
+      _addBibleToVersionSel(bible);
+
+      if (typeof showSchToast === 'function')
+        showSchToast(`✓ "${bible.name}" imported — ${Object.keys(bible.books).length} books`);
+    } catch(err) {
+      if (typeof showSchToast === 'function') showSchToast('⚠ ' + err.message);
+      console.error('[BW Bible Import]', err);
+    }
+  }
+
+  /* Parse JSON format:
+     { name:"NIV", books:{ "Genesis":{ "1":[null,"verse1","verse2",...] } } }
+     or array-of-books OpenBible-style */
+  function _parseBibleJSON(text) {
+    const data = JSON.parse(text);
+    if (data.name && data.books) return data;
+
+    /* Try OpenBible / osis2mod array format */
+    if (Array.isArray(data)) {
+      const books = {};
+      data.forEach(entry => {
+        if (!entry.book || !entry.chapter || !entry.verse || !entry.text) return;
+        const b = entry.book;
+        const c = String(entry.chapter);
+        if (!books[b]) books[b] = {};
+        if (!books[b][c]) books[b][c] = [null];
+        while (books[b][c].length <= parseInt(entry.verse)) books[b][c].push('');
+        books[b][c][parseInt(entry.verse)] = entry.text;
+      });
+      return { name: data[0]?.translation || 'Custom', books };
+    }
+    return null;
+  }
+
+  /* Parse plain-text format:
+     Genesis 1:1 In the beginning...
+     Genesis 1:2 And the earth... */
+  function _parseBiblePlainText(text, filename) {
+    const lines = text.split('\n');
+    const books = {};
+    const re    = /^(.+?)\s+(\d+):(\d+)\s+(.+)$/;
+    let   count = 0;
+    lines.forEach(line => {
+      const m = re.exec(line.trim());
+      if (!m) return;
+      const [, book, ch, vs, content] = m;
+      if (!books[book]) books[book] = {};
+      if (!books[book][ch]) books[book][ch] = [null];
+      while (books[book][ch].length <= parseInt(vs)) books[book][ch].push('');
+      books[book][ch][parseInt(vs)] = content.trim();
+      count++;
+    });
+    if (!count) return null;
+    const name = filename.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ');
+    return { name, books };
+  }
+
+  function _addBibleToVersionSel(bible) {
+    ['bible-version-sel', 'bv-version'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      if (Array.from(sel.options).some(o => o.value === bible.name)) return;
+      const opt = document.createElement('option');
+      opt.value = bible.name; opt.textContent = bible.name;
+      sel.appendChild(opt);
+    });
+  }
+
+  /* Restore imported Bibles into selectors on load */
+  function _restoreCustomBibles() {
+    _loadCustomBibles().forEach(_addBibleToVersionSel);
+  }
 
   /* ══════════════════════════════════════════════════════════
      UTILITIES
@@ -942,6 +1091,8 @@
 
   function boot() {
     _fixDropdowns();
+     _addImportBtn();
+    _restoreCustomBibles();
     setTimeout(() => {
       _buildPanel();
       const g = document.getElementById('bib-book-grid');
