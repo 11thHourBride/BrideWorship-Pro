@@ -93,20 +93,7 @@ html, body {
   z-index: 0;
 }
 
-/* Reference line — fixed height at top */
-#proj-ref {
-  position: relative; z-index: 2;
-  flex-shrink: 0;
-  padding: 1.2vh 4vw 0;
-  font-family: 'Arial', serif;
-  font-size: clamp(10px, 1.6vh, 26px);
-  letter-spacing: .35em;
-  color: rgba(201,168,76,.8);
-  text-transform: uppercase;
-  text-align: center;
-  min-height: 4.5vh;
-  display: flex; align-items: center; justify-content: center;
-}
+
 
 /* Text wrapper — ALL remaining space */
 #proj-text-wrap {
@@ -124,7 +111,6 @@ html, body {
 #proj-text {
   width: 100%;
   line-height: 1.22;
-  word-wrap: break-word;
   overflow-wrap: break-word;
   text-align: center;
 }
@@ -138,22 +124,13 @@ html, body {
   padding: 0 4vw 1vh;
   font-weight: 900;
   font-family: 'Arial', serif;
-  font-size: clamp(17px, 1.3vh, 50px);
+  font-size: clamp(10px, 3vh, 50px);
   letter-spacing: .22em;
   color: rgba(2, 247, 55, 0.95);
   text-transform: uppercase;
   text-align: center;
 }
 
-/* Lower third */
-#proj-lt {
-  position: fixed; bottom:0; left:0; right:0; z-index:10;
-  padding: 1.5vh 3vw;
-  display: none; text-align: center;
-  font-size: clamp(14px, 2.8vh, 44px);
-  font-family: Arial, Serif;
-  font-weight: 700; letter-spacing: .06em; color: #fff;
-}
 #proj-lt.visible    { display: block; }
 #proj-lt.lt-default { background: rgba(8,5,26,.88); border-top:1px solid rgba(201,168,76,.3); }
 #proj-lt.lt-gold    { background: linear-gradient(90deg,#8a5a00,#c9a84c,#8a5a00); }
@@ -304,14 +281,7 @@ document.addEventListener('fullscreenchange', function () { setTimeout(fitText, 
       foot.textContent = parts.join('  ·  ');
     }
 
-    /* Lower third */
-    if (lt) {
-      lt.className = '';
-      if (S.lowerThird?.active && S.lowerThird.text) {
-        lt.className  = 'visible lt-' + S.lowerThird.style;
-        lt.textContent = S.lowerThird.text;
-      }
-    }
+   
 
     /* Update scale then fit */
     pw._projScale = _scale;
@@ -404,6 +374,5 @@ document.addEventListener('fullscreenchange', function () { setTimeout(fitText, 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
   } else { setTimeout(boot, 300); }
-
 })();
 
