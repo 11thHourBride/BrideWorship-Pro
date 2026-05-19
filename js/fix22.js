@@ -124,7 +124,7 @@ html, body {
   padding: 0 4vw 1vh;
   font-weight: 900;
   font-family: 'Arial', serif;
-  font-size: clamp(10px, 3vh, 50px);
+  font-size: clamp(10px, 3.8vh, 50px);
   letter-spacing: .22em;
   color: rgba(2, 247, 55, 0.95);
   text-transform: uppercase;
@@ -374,5 +374,6 @@ document.addEventListener('fullscreenchange', function () { setTimeout(fitText, 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
   } else { setTimeout(boot, 300); }
+
 })();
 
