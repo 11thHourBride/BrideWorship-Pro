@@ -124,11 +124,11 @@ html, body {
   padding: 0 4vw 1vh;
   font-weight: 900;
   font-family: 'Arial', serif;
-  font-size: clamp(10px, 4.7vh, 50px);
-  letter-spacing: .22em;
+  font-size: clamp(10px, 4.7vh, 40px);
+  letter-spacing: 0;
   color: rgba(2, 247, 55, 0.95);
   text-transform: uppercase;
-  text-align: center;
+  text-align: start;
 }
 
 #proj-lt.visible    { display: block; }
@@ -262,7 +262,7 @@ document.addEventListener('fullscreenchange', function () { setTimeout(fitText, 
     /* Text content + format */
     if (txt) {
       txt.innerHTML     = (sl.text || '').replace(/\n/g, '<br>');
-      txt.style.fontFamily  = `'${f.font || 'Playfair Display'}', serif`;
+      txt.style.fontFamily  = `'${f.font || 'arial'}', serif`;
       txt.style.textAlign   = f.align   || 'center';
       txt.style.fontWeight  = f.bold    ? '700' : '400';
       txt.style.fontStyle   = f.italic  ? 'italic' : 'normal';
@@ -275,7 +275,6 @@ document.addEventListener('fullscreenchange', function () { setTimeout(fitText, 
     if (foot) {
       const parts = [];
       if (sl.section) parts.push(sl.section);
-      if (sl.author)  parts.push(sl.author);
       if (sl.version) parts.push(sl.version);
       if (S.ccli)     parts.push('CCLI #' + S.ccli);
       foot.textContent = parts.join('  ·  ');
