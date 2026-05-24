@@ -124,7 +124,7 @@ html, body {
   padding: 0 4vw 1vh;
   font-weight: 900;
   font-family: 'Arial', serif;
-  font-size: clamp(10px, 4.7vh, 40px);
+  font-size: clamp(10px, 4.7vh, 50px);
   letter-spacing: 0;
   color: rgba(2, 247, 55, 0.95);
   text-transform: uppercase;
