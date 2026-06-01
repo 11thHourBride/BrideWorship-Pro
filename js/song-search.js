@@ -1,105 +1,253 @@
 /* ═══════════════════════════════════════════════════════════
-   BrideWorship Pro — fix8.js
+   BrideWorship Pro — fix8.js  (v2)
    Enhanced Library Search
 
-   1. Punctuation-agnostic matching
-      "Im"  → matches "I'm"
-      "dont"→ matches "Don't"
-      "hes" → matches "He's"
+   Ranking order (highest → lowest):
+     1. Exact phrase in slide text       ← "Im bound…" matches "I'm bound…" first
+     2. Exact phrase in song title
+     3. Exact phrase in slide section label
+     4. All tokens in slide text         (words scattered, not a phrase)
+     5. All tokens in song title
+     6. Author / tag / key
+   Within the same rank, results are sorted alphabetically by title.
 
-   2. Slide-level results with highlighting
-      Matches shown per slide, not just per song.
-      Arrow keys navigate · Enter projects from that exact slide.
+   Features:
+   • Punctuation-agnostic  ("Im" → "I'm", "dont" → "Don't")
+   • Per-slide results with highlighted snippets
+   • ↑↓ keyboard navigation · Enter projects from that exact slide
+   • Esc closes dropdown
 ═══════════════════════════════════════════════════════════ */
 
 (function BW_Fix8() {
   'use strict';
 
   /* ══════════════════════════════════════════════════════════
-     TEXT NORMALISATION
-     Strips punctuation so search works without it.
+     NORMALISATION  — strips punctuation so matching works
+     without it.  Both query and haystack are normalised before
+     any comparison; the original text is never modified.
   ══════════════════════════════════════════════════════════ */
 
   function _norm(str) {
     return (str || '')
       .toLowerCase()
-      /* apostrophes / smart quotes / curly quotes → remove */
+      /* Apostrophes / curly quotes → remove  (I'm → im) */
       .replace(/['''\u2018\u2019\u201C\u201D\u201A\u201E"]/g, '')
-      /* hyphens / dashes → space */
+      /* Hyphens / dashes → space  (God-given → god given) */
       .replace(/[-\u2013\u2014\u2012]/g, ' ')
-      /* all other non-alphanumeric chars → remove */
+      /* Everything else non-alphanumeric → remove */
       .replace(/[^a-z0-9\s]/g, '')
-      /* collapse whitespace */
+      /* Collapse whitespace */
       .replace(/\s+/g, ' ')
       .trim();
   }
 
-  /* Build normalised tokens from a query string */
-  function _tokens(q) {
-    return _norm(q).split(' ').filter(Boolean);
+  /* Individual tokens split from the query */
+  function _tokens(normQ) {
+    return normQ.split(' ').filter(Boolean);
   }
 
-  /* Returns true if ALL tokens appear in the normalised haystack */
-  function _matches(haystack, tokens) {
-    const h = _norm(haystack);
-    return tokens.every(t => h.includes(t));
+  /* True if the normalised haystack contains the full normalised phrase */
+  function _hasPhrase(normHaystack, normPhrase) {
+    return normPhrase.length > 0 && normHaystack.includes(normPhrase);
   }
 
-  /* Find byte-position of first token in normalised text,
-     so we can extract a context snippet */
-  function _findPos(normHaystack, tokens) {
-    for (const t of tokens) {
-      const i = normHaystack.indexOf(t);
-      if (i >= 0) return i;
-    }
-    return 0;
+  /* True if ALL tokens appear anywhere in the normalised haystack */
+  function _hasAllTokens(normHaystack, tokens) {
+    return tokens.every(t => normHaystack.includes(t));
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     SCORE TABLE
+     Higher number = floats to the top of results.
+  ────────────────────────────────────────────────────────── */
+  const SCORE = {
+    EXACT_PHRASE_TEXT   : 1000,   // "I'm bound for the promised land" — full phrase in lyrics
+    EXACT_PHRASE_TITLE  :  800,   // full phrase in song title
+    EXACT_PHRASE_SECTION:  600,   // full phrase in section label (VERSE, CHORUS, …)
+    ALL_TOKENS_TEXT     :   50,   // every word found in lyrics (not necessarily consecutive)
+    ALL_TOKENS_TITLE    :   40,   // every word found in title
+    ALL_TOKENS_SECTION  :   20,   // every word found in section label
+    AUTHOR_TAG          :    5,   // author / tag / key match
+  };
+
+  /* ══════════════════════════════════════════════════════════
+     RESULT BUILDER
+  ══════════════════════════════════════════════════════════ */
+
+  function _buildResults(rawQuery) {
+    const normQ  = _norm(rawQuery);
+    const tokens = _tokens(normQ);
+    if (!normQ || !tokens.length) return [];
+
+    const results = [];
+    /* Track which (songIdx, slideIdx) pairs we've already added */
+    const seen = new Set();
+
+    (typeof SONGS !== 'undefined' ? SONGS : []).forEach((song, songIdx) => {
+      const normTitle  = _norm(song.title   || '');
+      const normAuthor = _norm(song.author  || '');
+      const normTag    = _norm(song.tag     || '');
+      const normKey    = _norm(song.key     || '');
+
+      const titlePhraseMatch  = _hasPhrase(normTitle,  normQ);
+      const titleTokenMatch   = !titlePhraseMatch && _hasAllTokens(normTitle, tokens);
+      const metaMatch = _hasAllTokens(normAuthor, tokens)
+                     || _hasAllTokens(normTag,    tokens)
+                     || _hasAllTokens(normKey,    tokens);
+
+      /* ── Per-slide scoring ── */
+      (song.slides || []).forEach((slide, slideIdx) => {
+        const normText    = _norm(slide.text    || '');
+        const normSection = _norm(slide.section || '');
+
+        const textPhraseMatch   = _hasPhrase(normText,    normQ);
+        const secPhraseMatch    = _hasPhrase(normSection,  normQ);
+        const textTokenMatch    = !textPhraseMatch  && _hasAllTokens(normText,    tokens);
+        const secTokenMatch     = !secPhraseMatch   && _hasAllTokens(normSection, tokens);
+
+        /* Calculate score — additive; highest single component drives ranking */
+        let score = 0;
+        if (textPhraseMatch)   score += SCORE.EXACT_PHRASE_TEXT;
+        if (titlePhraseMatch)  score += SCORE.EXACT_PHRASE_TITLE;
+        if (secPhraseMatch)    score += SCORE.EXACT_PHRASE_SECTION;
+        if (textTokenMatch)    score += SCORE.ALL_TOKENS_TEXT;
+        if (titleTokenMatch)   score += SCORE.ALL_TOKENS_TITLE;
+        if (secTokenMatch)     score += SCORE.ALL_TOKENS_SECTION;
+        if (metaMatch)         score += SCORE.AUTHOR_TAG;
+
+        if (score === 0) return; /* no match at all */
+
+        const key = songIdx + ':' + slideIdx;
+        if (seen.has(key)) return;
+        seen.add(key);
+
+        /* Snippet: 80-char window around the first match in the raw slide text */
+        let snippet = '';
+        const raw = slide.text || '';
+        if (textPhraseMatch || textTokenMatch) {
+          /* Find approximate position in raw text */
+          const approxPos = (() => {
+            const rawLower = raw.toLowerCase();
+            /* Try exact phrase first (after light apostrophe strip) */
+            const lightNorm = raw.replace(/['''\u2018\u2019]/g, '').toLowerCase();
+            const phrasePos = lightNorm.indexOf(normQ.replace(/\s+/g,' '));
+            if (phrasePos >= 0) return phrasePos;
+            /* Fall back to first token position */
+            for (const t of tokens) {
+              const p = rawLower.indexOf(t);
+              if (p >= 0) return p;
+            }
+            return 0;
+          })();
+          const start = Math.max(0, approxPos - 12);
+          const end   = Math.min(raw.length, start + 85);
+          snippet = (start > 0 ? '…' : '') + raw.slice(start, end).trim()
+                  + (end < raw.length ? '…' : '');
+        } else {
+          /* Title / meta match only — show beginning of slide text */
+          snippet = raw.slice(0, 70).trim() + (raw.length > 70 ? '…' : '');
+        }
+
+        results.push({
+          songIdx, slideIdx,
+          songTitle   : song.title    || 'Untitled',
+          songAuthor  : song.author   || '',
+          slideSection: slide.section || ('Slide ' + (slideIdx + 1)),
+          snippet,
+          score,
+          /* Pass normQ and tokens to the highlighter */
+          normQ,
+          tokens,
+          /* Badge: show which kind of match this is */
+          matchType: textPhraseMatch  ? 'phrase'
+                   : titlePhraseMatch ? 'title'
+                   : secPhraseMatch   ? 'section'
+                   : textTokenMatch   ? 'words'
+                   : 'meta',
+        });
+      });
+
+      /* If ONLY title/meta matched (no slide scored), add slide 0 as a
+         representative entry so the song still appears */
+      const songHasEntry = results.some(r => r.songIdx === songIdx);
+      if (!songHasEntry && (titlePhraseMatch || titleTokenMatch || metaMatch)) {
+        const slide0 = song.slides?.[0];
+        const key    = songIdx + ':0';
+        if (!seen.has(key)) {
+          seen.add(key);
+          results.push({
+            songIdx, slideIdx: 0,
+            songTitle   : song.title    || 'Untitled',
+            songAuthor  : song.author   || '',
+            slideSection: slide0?.section || 'Slide 1',
+            snippet     : (slide0?.text || '').slice(0, 70),
+            score       : titlePhraseMatch
+              ? SCORE.EXACT_PHRASE_TITLE
+              : titleTokenMatch
+                ? SCORE.ALL_TOKENS_TITLE
+                : SCORE.AUTHOR_TAG,
+            normQ, tokens,
+            matchType: titlePhraseMatch ? 'title' : 'meta',
+          });
+        }
+      }
+    });
+
+    /* ── Sort: score DESC, then title ASC ── */
+    results.sort((a, b) =>
+      b.score - a.score || a.songTitle.localeCompare(b.songTitle)
+    );
+
+    return results.slice(0, 35);
   }
 
   /* ══════════════════════════════════════════════════════════
      HIGHLIGHT HELPER
-     Wraps every occurrence of every token in the raw (un-
-     normalised) display text with a <mark> span.
-     Works by aligning the normalised and raw strings.
+     Marks matching characters in the raw display text.
   ══════════════════════════════════════════════════════════ */
 
-  function _highlight(rawText, tokens) {
-    if (!tokens.length) return _esc(rawText);
+  function _highlight(rawText, normQ, tokens) {
+    if (!rawText) return '';
+    const raw = String(rawText);
 
-    /* Build a char-level map: normPos → rawPos */
-    const raw  = rawText || '';
-    const norm = _norm(raw);
-
-    /* Simple approach: replace each token in the normalised
-       string, then reconstruct the raw text around those positions */
-
-    /* We'll use a mark array on the raw string */
-    const rawLower = raw.toLowerCase()
-      .replace(/['''\u2018\u2019\u201C\u201D"]/g, ' ')
-      .replace(/[-\u2013\u2014]/g, ' ');
-
-    /* For each token, find all occurrences in a relaxed raw lower */
+    /* Build a bool array: marked[i] = true means raw[i] should be highlighted */
     const marked = new Array(raw.length).fill(false);
 
+    /* Relaxed lowercase version for position scanning */
+    const rawRelax = raw
+      .replace(/['''\u2018\u2019\u201C\u201D"]/g, ' ')
+      .replace(/[-\u2013\u2014]/g, ' ')
+      .replace(/[^a-z0-9\s]/gi, ' ')
+      .toLowerCase();
+
+    /* Try to mark the full phrase first */
+    if (normQ) {
+      let pos = 0;
+      while (pos < rawRelax.length) {
+        const idx = rawRelax.indexOf(normQ, pos);
+        if (idx === -1) break;
+        for (let k = idx; k < Math.min(idx + normQ.length, raw.length); k++) marked[k] = true;
+        pos = idx + 1;
+      }
+    }
+
+    /* Also mark individual tokens so partial matches show highlights */
     tokens.forEach(token => {
       let pos = 0;
-      while (pos < rawLower.length) {
-        /* Try exact match first */
-        const idx = rawLower.indexOf(token, pos);
+      while (pos < rawRelax.length) {
+        const idx = rawRelax.indexOf(token, pos);
         if (idx === -1) break;
-        for (let k = idx; k < idx + token.length && k < raw.length; k++) {
-          marked[k] = true;
-        }
+        for (let k = idx; k < Math.min(idx + token.length, raw.length); k++) marked[k] = true;
         pos = idx + 1;
       }
     });
 
-    /* Build output string */
-    let out = '';
-    let inMark = false;
+    /* Build HTML */
+    let out = '', inMark = false;
     for (let i = 0; i < raw.length; i++) {
       const ch = _esc(raw[i]);
-      if (marked[i] && !inMark) { out += '<mark style="background:rgba(201,168,76,.4);color:#fff;border-radius:2px;padding:0 1px;">'; inMark = true; }
-      if (!marked[i] && inMark) { out += '</mark>'; inMark = false; }
+      if (marked[i]  && !inMark) { out += '<mark>'; inMark = true; }
+      if (!marked[i] && inMark)  { out += '</mark>'; inMark = false; }
       out += ch;
     }
     if (inMark) out += '</mark>';
@@ -113,233 +261,138 @@
   }
 
   /* ══════════════════════════════════════════════════════════
-     SEARCH RESULT BUILDER
-     Returns an array of result objects, one per matching slide.
+     CSS
   ══════════════════════════════════════════════════════════ */
 
-  function _buildResults(query) {
-    const tokens = _tokens(query);
-    if (!tokens.length) return [];
-
-    const results = [];
-
-    (typeof SONGS !== 'undefined' ? SONGS : []).forEach((song, songIdx) => {
-      /* Check title / author / tag first */
-      const titleMatch  = _matches(song.title  || '', tokens);
-      const authorMatch = _matches(song.author  || '', tokens);
-      const tagMatch    = _matches(song.tag     || '', tokens);
-
-      /* Check each slide */
-      (song.slides || []).forEach((slide, slideIdx) => {
-        const textMatch    = _matches(slide.text    || '', tokens);
-        const sectionMatch = _matches(slide.section || '', tokens);
-
-        if (!titleMatch && !authorMatch && !tagMatch && !textMatch && !sectionMatch) return;
-
-        /* Build a readable snippet */
-        let snippet = '';
-        if (textMatch) {
-          /* 60-char window around the first token occurrence */
-          const normText = _norm(slide.text || '');
-          const pos      = _findPos(normText, tokens);
-          /* Map back to raw text character range (approximate) */
-          const raw  = slide.text || '';
-          const start = Math.max(0, Math.floor(pos * (raw.length / (normText.length || 1))) - 15);
-          const end   = Math.min(raw.length, start + 80);
-          snippet = (start > 0 ? '…' : '') + raw.slice(start, end).trim() + (end < raw.length ? '…' : '');
-        } else {
-          snippet = (slide.text || '').slice(0, 60).trim() + ((slide.text || '').length > 60 ? '…' : '');
-        }
-
-        results.push({
-          songIdx,
-          slideIdx,
-          songTitle:    song.title    || 'Untitled',
-          songAuthor:   song.author   || '',
-          slideSection: slide.section || ('Slide ' + (slideIdx + 1)),
-          snippet,
-          titleMatch,
-          tokens,
-          /* Priority: title match = 10, slide text match = 5, section = 3, author/tag = 1 */
-          score: (titleMatch ? 10 : 0) + (textMatch ? 5 : 0) + (sectionMatch ? 3 : 0)
-            + (authorMatch || tagMatch ? 1 : 0),
-        });
-      });
-
-      /* If only title/author/tag matched (no slide text), show slide 0 */
-      if ((titleMatch || authorMatch || tagMatch) &&
-          !results.some(r => r.songIdx === songIdx)) {
-        results.push({
-          songIdx, slideIdx: 0,
-          songTitle:    song.title    || 'Untitled',
-          songAuthor:   song.author   || '',
-          slideSection: (song.slides?.[0]?.section) || 'Slide 1',
-          snippet:      (song.slides?.[0]?.text || '').slice(0, 60),
-          titleMatch, tokens,
-          score: titleMatch ? 10 : 1,
-        });
-      }
-    });
-
-    /* Deduplicate song-level title hits (keep highest score per songIdx+slideIdx) */
-    const seen = new Set();
-    const deduped = results.filter(r => {
-      const k = r.songIdx + ':' + r.slideIdx;
-      if (seen.has(k)) return false;
-      seen.add(k);
-      return true;
-    });
-
-    /* Sort: highest score first, then alphabetically */
-    deduped.sort((a, b) =>
-      b.score - a.score || a.songTitle.localeCompare(b.songTitle)
-    );
-
-    return deduped.slice(0, 30); /* cap at 30 results */
-  }
-
-  /* ══════════════════════════════════════════════════════════
-     DROPDOWN PANEL
-  ══════════════════════════════════════════════════════════ */
-
-  const CSS = `
+  document.head.insertAdjacentHTML('beforeend', `<style id="bw-fix8-css">
     #bw-search-drop {
-      position: absolute;
-      left: 0; right: 0;
-      top: calc(100% + 2px);
-      background: var(--bg-card, #13131e);
-      border: 1px solid var(--border-dim, rgba(255,255,255,.08));
-      border-radius: 6px;
-      box-shadow: 0 8px 32px rgba(0,0,0,.6);
-      z-index: 9999;
-      max-height: 380px;
-      overflow-y: auto;
-      overflow-x: hidden;
+      position:absolute; left:0; right:0; top:calc(100% + 2px);
+      background:var(--bg-card,#13131e);
+      border:1px solid var(--border-dim,rgba(255,255,255,.08));
+      border-radius:6px;
+      box-shadow:0 8px 32px rgba(0,0,0,.6);
+      z-index:9999;
+      max-height:390px;
+      overflow-y:auto; overflow-x:hidden;
     }
-    #bw-search-drop::-webkit-scrollbar { width: 3px; }
-    #bw-search-drop::-webkit-scrollbar-thumb { background: var(--border-dim); border-radius: 2px; }
+    #bw-search-drop::-webkit-scrollbar{width:3px;}
+    #bw-search-drop::-webkit-scrollbar-thumb{background:var(--border-dim);border-radius:2px;}
 
+    /* Song group header */
     .bsd-song-header {
-      padding: 6px 10px 3px;
-      font-family: 'Cinzel', serif;
-      font-size: 9px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--gold, #c9a84c);
-      background: rgba(201,168,76,.05);
-      border-bottom: 1px solid var(--border-dim);
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
+      padding:6px 10px 3px;
+      font-family:'Cinzel',serif; font-size:9px;
+      letter-spacing:2px; text-transform:uppercase;
+      color:var(--gold,#c9a84c);
+      background:rgba(201,168,76,.06);
+      border-bottom:1px solid var(--border-dim);
+      display:flex; align-items:baseline; gap:6px;
+      position:sticky; top:0; z-index:2;
     }
     .bsd-song-header .bsd-author {
-      font-family: 'Lato', sans-serif;
-      font-size: 9px;
-      color: var(--text-3, #55535a);
-      letter-spacing: 0;
-      text-transform: none;
-      font-weight: 400;
+      font-family:'Lato',sans-serif; font-size:9px;
+      color:var(--text-3,#55535a);
+      letter-spacing:0; text-transform:none; font-weight:400;
     }
 
+    /* Result row */
     .bsd-item {
-      padding: 6px 10px 6px 18px;
-      cursor: pointer;
-      border-bottom: 1px solid rgba(255,255,255,.03);
-      transition: background .1s;
-      display: flex;
-      gap: 8px;
-      align-items: flex-start;
+      padding:6px 10px 6px 18px;
+      cursor:pointer;
+      border-bottom:1px solid rgba(255,255,255,.03);
+      transition:background .1s;
+      display:flex; gap:8px; align-items:flex-start;
     }
-    .bsd-item:hover,
-    .bsd-item.focused {
-      background: var(--bg-hover, rgba(255,255,255,.06));
+    .bsd-item:hover, .bsd-item.focused {
+      background:var(--bg-hover,rgba(255,255,255,.06));
     }
-    .bsd-item.focused { outline: none; }
 
+    /* Slide section tag */
     .bsd-slide-tag {
-      flex-shrink: 0;
-      font-family: 'Cinzel', serif;
-      font-size: 8px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--text-3, #55535a);
-      padding: 2px 5px;
-      border: 1px solid var(--border-dim);
-      border-radius: 3px;
-      margin-top: 1px;
-      white-space: nowrap;
-      min-width: 52px;
-      text-align: center;
+      flex-shrink:0;
+      font-family:'Cinzel',serif; font-size:8px;
+      letter-spacing:1px; text-transform:uppercase;
+      color:var(--text-3,#55535a);
+      padding:2px 5px;
+      border:1px solid var(--border-dim); border-radius:3px;
+      margin-top:1px; white-space:nowrap; min-width:52px; text-align:center;
     }
+
+    /* Match-type pill — tells user WHY this result appeared */
+    .bsd-match-pill {
+      flex-shrink:0; align-self:center;
+      font-size:7px; font-family:'Lato',sans-serif;
+      padding:1px 5px; border-radius:10px;
+      letter-spacing:.5px; text-transform:uppercase;
+      white-space:nowrap;
+    }
+    .bsd-match-pill.phrase  { background:rgba(201,168,76,.25); color:var(--gold,#c9a84c); border:1px solid rgba(201,168,76,.4); }
+    .bsd-match-pill.title   { background:rgba(74,144,217,.2);  color:#6ab0ff;             border:1px solid rgba(74,144,217,.35); }
+    .bsd-match-pill.section { background:rgba(76,175,122,.15); color:#6fdfab;             border:1px solid rgba(76,175,122,.3); }
+    .bsd-match-pill.words   { background:rgba(255,255,255,.06);color:var(--text-2);       border:1px solid var(--border-dim); }
+    .bsd-match-pill.meta    { background:rgba(255,255,255,.04);color:var(--text-3);       border:1px solid var(--border-dim); }
+
+    /* Snippet text */
     .bsd-snippet {
-      font-size: 11px;
-      color: var(--text-2, #9a9890);
-      line-height: 1.5;
-      flex: 1;
-      min-width: 0;
+      font-size:11px; color:var(--text-2,#9a9890);
+      line-height:1.5; flex:1; min-width:0;
     }
     .bsd-snippet mark {
-      background: rgba(201,168,76,.35);
-      color: #fff;
-      border-radius: 2px;
-      padding: 0 1px;
+      background:rgba(201,168,76,.38); color:#fff;
+      border-radius:2px; padding:0 1px;
     }
 
-    .bsd-hint {
-      padding: 8px 10px;
-      font-size: 10px;
-      color: var(--text-3, #55535a);
-      text-align: center;
+    /* "↵ Project" hint on focused row */
+    .bsd-enter-hint {
+      font-size:9px; color:var(--gold,#c9a84c); opacity:.75;
+      margin-left:auto; flex-shrink:0; align-self:center;
+      white-space:nowrap; font-family:'Cinzel',serif; letter-spacing:1px;
+    }
+
+    /* Footer hint */
+    .bsd-footer-hint {
+      padding:6px 10px;
+      font-size:9px; color:var(--text-3,#55535a);
+      text-align:center;
+      border-top:1px solid var(--border-dim);
+      font-family:'Lato',sans-serif;
     }
     .bsd-empty {
-      padding: 14px 10px;
-      font-size: 11px;
-      color: var(--text-3, #55535a);
-      text-align: center;
+      padding:14px 10px; font-size:11px;
+      color:var(--text-3,#55535a); text-align:center;
     }
-    .bsd-enter-hint {
-      font-size: 9px;
-      color: var(--gold, #c9a84c);
-      opacity: .7;
-      margin-left: auto;
-      flex-shrink: 0;
-      align-self: center;
-      white-space: nowrap;
-    }
-  `;
+  </style>`);
 
-  const styleEl = document.createElement('style');
-  styleEl.textContent = CSS;
-  document.head.appendChild(styleEl);
+  /* ══════════════════════════════════════════════════════════
+     DROPDOWN STATE
+  ══════════════════════════════════════════════════════════ */
 
-  /* ── State ── */
   let _drop      = null;
   let _results   = [];
   let _focused   = -1;
   let _lastQuery = '';
 
-  /* ── Get or create the dropdown ── */
+  /* ── Get / create dropdown element ── */
   function _getDrop() {
     if (_drop && _drop.isConnected) return _drop;
-    const searchInput = document.getElementById('search');
-    if (!searchInput) return null;
-    /* Parent must be position:relative */
-    const parent = searchInput.parentElement;
+    const inp = document.getElementById('search');
+    if (!inp) return null;
+    const parent = inp.parentElement;
     if (parent && window.getComputedStyle(parent).position === 'static') {
       parent.style.position = 'relative';
     }
     _drop = document.createElement('div');
     _drop.id = 'bw-search-drop';
-    if (parent) parent.insertBefore(_drop, searchInput.nextSibling);
+    if (parent) parent.insertBefore(_drop, inp.nextSibling);
     return _drop;
   }
 
-  /* ── Render dropdown ── */
+  /* ── Render the dropdown ── */
   function _render(results, query) {
     const drop = _getDrop();
     if (!drop) return;
     _results = results;
-    _focused = results.length ? 0 : -1;
+    if (_focused >= results.length) _focused = results.length ? 0 : -1;
 
     if (!query) { _hideDrop(); return; }
 
@@ -352,30 +405,37 @@
     let html     = '';
     let lastSong = -1;
 
+    const PILL_LABEL = { phrase:'Exact phrase', title:'Title match',
+                         section:'Section', words:'All words', meta:'Author/Tag' };
+
     results.forEach((r, i) => {
-      /* Song header when song changes */
+      /* Song group header when song changes */
       if (r.songIdx !== lastSong) {
         lastSong = r.songIdx;
         html += `<div class="bsd-song-header">
           ${_esc(r.songTitle)}
-          ${r.songAuthor ? `<span class="bsd-author">— ${_esc(r.songAuthor)}</span>` : ''}
+          ${r.songAuthor
+            ? `<span class="bsd-author">— ${_esc(r.songAuthor)}</span>`
+            : ''}
         </div>`;
       }
 
-      const snipHL = _highlight(r.snippet, r.tokens);
-      const isFocused = i === _focused;
+      const focused   = i === _focused;
+      const snipHL    = _highlight(r.snippet, r.normQ, r.tokens);
+      const pillLabel = PILL_LABEL[r.matchType] || '';
 
-      html += `<div class="bsd-item ${isFocused ? 'focused' : ''}"
+      html += `<div class="bsd-item ${focused ? 'focused' : ''}"
         data-idx="${i}"
         onmousedown="event.preventDefault()"
         onclick="_bsdSelect(${i})">
         <span class="bsd-slide-tag">${_esc(r.slideSection)}</span>
         <span class="bsd-snippet">${snipHL}</span>
-        ${isFocused ? '<span class="bsd-enter-hint">↵ Project</span>' : ''}
+        <span class="bsd-match-pill ${_esc(r.matchType)}">${pillLabel}</span>
+        ${focused ? '<span class="bsd-enter-hint">↵ Project</span>' : ''}
       </div>`;
     });
 
-    html += `<div class="bsd-hint">
+    html += `<div class="bsd-footer-hint">
       ↑↓ navigate &nbsp;·&nbsp; ↵ project from highlighted slide &nbsp;·&nbsp; Esc close
     </div>`;
 
@@ -383,17 +443,14 @@
     drop.style.display = 'block';
   }
 
-  /* ── Focus a result row ── */
+  /* ── Move keyboard focus ── */
   function _focusIdx(i) {
+    if (!_results.length) return;
     _focused = Math.max(0, Math.min(_results.length - 1, i));
-    /* Re-render to update focused class and Enter hint */
     _render(_results, _lastQuery);
-    /* Scroll focused item into view */
     const drop = _getDrop();
-    if (drop) {
-      const item = drop.querySelector('.bsd-item.focused');
-      if (item) item.scrollIntoView({ block: 'nearest' });
-    }
+    drop?.querySelector('.bsd-item.focused')
+        ?.scrollIntoView({ block:'nearest' });
   }
 
   /* ── Select and project ── */
@@ -401,16 +458,14 @@
     const r = _results[i];
     if (!r) return;
     _hideDrop();
-    document.getElementById('search').value = '';
+    const inp = document.getElementById('search');
+    if (inp) inp.value = '';
+    _lastQuery = '';
 
-    /* Load song */
+    /* Load song then jump to the exact slide */
     if (typeof loadSong === 'function') loadSong(r.songIdx);
-
-    /* Jump to the matching slide on next tick (loadSong is sync, but
-       renderQueue/renderSlide need to finish first) */
     requestAnimationFrame(() => {
       if (typeof jumpSlide === 'function') jumpSlide(r.slideIdx);
-      /* Highlight the library item */
       document.querySelectorAll('#ls-songs .lib-item').forEach(el => el.classList.remove('sel'));
       document.getElementById('li-' + r.songIdx)?.classList.add('sel');
     });
@@ -421,14 +476,14 @@
     if (_drop) _drop.style.display = 'none';
     _results = [];
     _focused = -1;
-    /* Restore the normal song list visibility */
+    /* Restore library list */
     document.querySelectorAll('#ls-songs .lib-item').forEach(el => {
       el.style.display = '';
     });
   }
 
   /* ══════════════════════════════════════════════════════════
-     PATCH filterSongs  — runs on every keystroke
+     PATCH filterSongs
   ══════════════════════════════════════════════════════════ */
 
   window.filterSongs = function () {
@@ -437,42 +492,41 @@
 
     if (!q) {
       _hideDrop();
-      /* Show all songs */
       document.querySelectorAll('#ls-songs .lib-item').forEach(el => {
         el.style.display = '';
       });
       return;
     }
 
-    /* Hide the raw lib-item list while dropdown is showing */
+    /* Hide raw list while dropdown is active */
     document.querySelectorAll('#ls-songs .lib-item').forEach(el => {
       el.style.display = 'none';
     });
 
     const results = _buildResults(q);
+    if (_focused === -1 && results.length) _focused = 0;
     _render(results, q);
   };
 
   /* ══════════════════════════════════════════════════════════
-     KEYBOARD NAVIGATION ON THE SEARCH INPUT
+     KEYBOARD WIRING ON #search
   ══════════════════════════════════════════════════════════ */
 
-  function _wireSearchInput() {
+  function _wireSearch() {
     const inp = document.getElementById('search');
     if (!inp || inp._fix8Wired) return;
     inp._fix8Wired = true;
 
     inp.addEventListener('keydown', e => {
-      const dropVisible = _drop && _drop.style.display !== 'none';
+      const open = _drop && _drop.style.display !== 'none';
 
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          if (!dropVisible && _lastQuery) {
-            /* Re-open if closed */
-            _render(_results.length ? _results : _buildResults(_lastQuery), _lastQuery);
-          }
-          _focusIdx(_focused + 1);
+          if (!open && _lastQuery) _render(
+            _results.length ? _results : _buildResults(_lastQuery), _lastQuery
+          );
+          _focusIdx(_focused < 0 ? 0 : _focused + 1);
           break;
 
         case 'ArrowUp':
@@ -482,48 +536,41 @@
 
         case 'Enter':
           e.preventDefault();
-          if (dropVisible && _focused >= 0) {
+          if (open && _focused >= 0) {
             window._bsdSelect(_focused);
           } else if (_results.length) {
-            /* No dropdown but have results — project best match */
             window._bsdSelect(0);
           }
           break;
 
         case 'Escape':
+          e.preventDefault();
           _hideDrop();
           inp.value = '';
-          filterSongs(); /* reset list */
+          _lastQuery = '';
           break;
       }
     });
 
-    /* Hide dropdown when input loses focus (except when clicking a result) */
     inp.addEventListener('blur', () => {
       setTimeout(() => {
-        /* Only hide if focus didn't move to a result item */
-        const active = document.activeElement;
-        if (!_drop?.contains(active)) _hideDrop();
+        if (!_drop?.contains(document.activeElement)) _hideDrop();
       }, 180);
     });
 
     inp.addEventListener('focus', () => {
-      /* Re-show dropdown if query is already typed */
       if (_lastQuery) filterSongs();
     });
   }
 
   /* ══════════════════════════════════════════════════════════
-     ALSO PATCH the topbar Scripture tab to not reset song search
+     CLOSE ON OUTSIDE CLICK
   ══════════════════════════════════════════════════════════ */
 
-  /* Close dropdown when user clicks elsewhere in the library */
   document.addEventListener('click', e => {
     if (!_drop) return;
-    const search = document.getElementById('search');
-    if (!_drop.contains(e.target) && e.target !== search) {
-      _hideDrop();
-    }
+    const inp = document.getElementById('search');
+    if (!_drop.contains(e.target) && e.target !== inp) _hideDrop();
   });
 
   /* ══════════════════════════════════════════════════════════
@@ -531,20 +578,18 @@
   ══════════════════════════════════════════════════════════ */
 
   function boot() {
-    _wireSearchInput();
-
-    /* Re-wire if library re-renders (e.g. after song import) */
+    _wireSearch();
+    /* Re-wire after song library rebuild (import etc.) */
     const _origBSL = window.buildSongLibrary;
     if (typeof _origBSL === 'function') {
       window.buildSongLibrary = function () {
         _origBSL();
-        setTimeout(_wireSearchInput, 100);
+        setTimeout(_wireSearch, 100);
       };
     }
-
     console.info(
-      '[BW fix8.js] ✓ Punctuation-agnostic search  ' +
-      '✓ Slide-level results  ✓ Enter projects from highlighted slide'
+      '[BW fix8.js v2] ✓ Exact phrase first  ' +
+      '✓ Punctuation-agnostic  ✓ Slide-level  ✓ Enter projects'
     );
   }
 
